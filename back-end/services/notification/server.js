@@ -1,9 +1,8 @@
 const { Server } = require("socket.io");
-const io = new Server(8081, {
-    cors: { origin: "*" } // Allow all origins (change for security)
-});
 
-console.log("Socket.IO server running on port 8081");
+const io = new Server(8081, {
+    path: '/api/notification/socket', // Explicitly set the Socket.IO path
+});
 
 io.on("connection", (socket) => {
     console.log(`New client connected: ${socket.id}`);
@@ -17,3 +16,4 @@ io.on("connection", (socket) => {
         console.log(`Client disconnected: ${socket.id}`);
     });
 });
+

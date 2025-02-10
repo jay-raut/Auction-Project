@@ -1,14 +1,18 @@
-const express = require("express");
-const router = express.Router();
+const { Router } = require("express");
+const { createProxyMiddleware } = require("http-proxy-middleware");
 
-router.get("/", async (req, res) => {
-  res.status(200).send({ route: "notification" });
-});
-
-router.get("/ws/auction/:id", async (req, res) => { //subscribes to a certain auction using id
-  res.status(200).send({ route: "websocket", auctionid: req.params.id });
-});
+const router = Router();
 
 
+
+const socketProxy = createProxyMiddleware({
+    target: 'http://localhost:8081', 
+    changeOrigin: true, 
+    ws: true, 
+    logLevel: console, 
+  });
+
+
+router.use('/socket', socketProxy);
 
 module.exports = router;
