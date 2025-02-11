@@ -20,14 +20,14 @@ socket.on("disconnect", () => {
 socket.emit("subscribe", 123);
 
 async function repeat_message() {
-  while (true) {
-    await sleep(1000);
-    socket.emit("sendmessage", "some_message");
-  }
+    while(true){
+        await sleep(1000);
+        socket.emit("sendmessage", "some_message2");
+    }
 }
 
 function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 repeat_message();
