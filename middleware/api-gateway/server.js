@@ -1,16 +1,19 @@
-require("dotenv").config(); //environment variables 
+require("dotenv").config(); //environment variables
 const server_port = process.env.api_server_port;
-
 
 const express = require("express"); //libraries
 const auction_route = require("./routes/auction_routes");
 const notification_route = require("./routes/notification_routes");
 const payment_route = require("./routes/payment_routes");
-const authentication_routes = require("./routes/authentication_routes")
-const app =  express();
+const authentication_routes = require("./routes/authentication_routes");
+const app = express();
 
-
-
+app.use((req, res, next) => {
+  //port tagging for debugging
+  console.log(`server got request to ${server_port} for ${req.url}`)
+  res.setHeader("X-Server-Port", server_port);
+  next();
+});
 
 app.use("/api/auction", auction_route); //routes
 app.use("/api/notification", notification_route);
