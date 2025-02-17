@@ -11,12 +11,20 @@ router.post(
   })
 );
 
-router.post("/login", async (req, res) => {
-  res.status(200).send({ route: "login" });
-});
+router.post(
+  "/login",
+  createProxyMiddleware({
+    target: `http://localhost:4000`,
+    changeOrigin: true,
+  })
+);
 
-router.post("/logout", async (req, res) => {
-  res.status(200).send({ route: "logout" });
-});
+router.post(
+  "/logout",
+  createProxyMiddleware({
+    target: `http://localhost:4000`,
+    changeOrigin: true,
+  })
+);
 
 module.exports = router;

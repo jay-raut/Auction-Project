@@ -1,5 +1,5 @@
 require("dotenv").config(); //environment variables
-const server_port = process.env.api_server_port;
+const server_port = process.env.server_port;
 
 const express = require("express"); //libraries
 const auction_route = require("./routes/auction_routes");
