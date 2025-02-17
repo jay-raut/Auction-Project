@@ -15,8 +15,8 @@ async function create_user(user, address, pool_connection) {
     const user_values = [user.username, hashed_password, user.first_name, user.last_name];
     const user_query_result = await client.query(user_query, user_values);
 
-    const address_values = [user_query_result.rows[0].user_id, address.street, address.street_number, address.zip_code, address.city, address.country];
-    await client.query("INSERT INTO addresses (user_id, street, street_number, zip_code, city, country) VALUES ($1, $2, $3, $4, $5, $6)", address_values);
+    const address_values = [user_query_result.rows[0].user_id, address.street_address, address.street_number, address.zip_code, address.city, address.country];
+    await client.query("INSERT INTO addresses (user_id, street_address, street_number, zip_code, city, country) VALUES ($1, $2, $3, $4, $5, $6)", address_values);
     await client.query("COMMIT");
 
     return { status: 200, message: "Created user successfully" };

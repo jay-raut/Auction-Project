@@ -15,8 +15,8 @@ const app = express();
 app.use(express.json());
 
 app.post("/register", async (req, res) => {
-  const { username, password, first_name, last_name, street, street_number, zip_code, city, country } = req.body;
-  const fields = [username, password, first_name, last_name, street, street_number, zip_code, city, country];
+  const { username, password, first_name, last_name, street_address, street_number, zip_code, city, country } = req.body;
+  const fields = [username, password, first_name, last_name, street_address, street_number, zip_code, city, country];
 
   if (fields.some((value) => !value)) {
     return res.status(400).json({ error: `Missing or undefined field` });
@@ -29,7 +29,7 @@ app.post("/register", async (req, res) => {
   };
 
   const addressData = {
-    street,
+    street_address,
     street_number,
     zip_code,
     city,
