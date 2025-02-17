@@ -11,7 +11,7 @@ const app = express();
 app.use((req, res, next) => {
   //port tagging for debugging
   console.log(`server got request to ${server_port} for ${req.url}`)
-  res.setHeader("X-Server-Port", server_port);
+  res.setHeader("API-Server-Port", server_port);
   next();
 });
 

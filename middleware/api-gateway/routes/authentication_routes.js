@@ -19,12 +19,5 @@ router.post(
   })
 );
 
-router.post(
-  "/logout",
-  createProxyMiddleware({
-    target: `http://localhost:4000`,
-    changeOrigin: true,
-  })
-);
 
 module.exports = router;

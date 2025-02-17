@@ -13,6 +13,13 @@ const POSTGRES_DATABASE = process.env.POSTGRES_DATABASE;
 const app = express();
 app.use(express.json());
 
+app.use((req, res, next) => {
+  //port tagging for debugging
+  console.log(`server got request to ${server_port} for ${req.url}`);
+  res.setHeader("AUTH-Server-Port", server_port);
+  next();
+});
+
 app.post("/register", async (req, res) => {
   const { username, password, first_name, last_name, street_address, street_number, zip_code, city, country } = req.body;
   const fields = [username, password, first_name, last_name, street_address, street_number, zip_code, city, country];

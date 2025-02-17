@@ -63,7 +63,6 @@ async function login(user, pool_connection) {
 async function verify(token) {
   try {
     const verify_result = jwt.verify(token, process.env.jwt_secret);
-    console.log(verify_result);
     return { status: 200, message: "Verified" };
   } catch (error) {
     return { status: 401, message: "Could not verify token" };
