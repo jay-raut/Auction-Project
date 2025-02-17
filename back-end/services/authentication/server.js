@@ -1,9 +1,8 @@
 require("dotenv").config(); //environment variables
-const postgresFunctions = require("./postgres_methods.js");
+const auth_functions = require("./auth_methods.js");
 const express = require("express");
 
-const { Client, Pool } = require("pg");
-const jwt_secret = process.env.jwt_secret;
+const { Pool } = require("pg");
 
 const POSTGRES_USER = process.env.POSTGRES_USER;
 const POSTGRES_PASSWORD = process.env.POSTGRES_PASSWORD;
@@ -36,7 +35,7 @@ app.post("/register", async (req, res) => {
     country,
   };
   try {
-    const create_user_status = await postgresFunctions.create_user(userData, addressData, pool);
+    const create_user_status = await auth_functions.create_user(userData, addressData, pool);
     return res.status(create_user_status.status).json({ message: create_user_status.message });
   } catch (error) {
     console.log(error);
@@ -57,8 +56,13 @@ app.post("/login", async (req, res) => {
   };
 
   try {
-    const login_user = await postgresFunctions.login(user, pool);
-    return res.status(login_user.status).json({ message: login_user.message, token: login_user.token });
+    const login_user = await auth_functions.login(user, pool);
+    res.cookie("token", login_user.token, {
+      httpOnly: true,
+      sameSite: "strict",
+      maxAge: 5 * 60 * 60 * 1000,
+    });
+    return res.status(login_user.status).json({ message: login_user.message });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ message: "Could not login check username or password" });
@@ -75,8 +79,19 @@ app.post("/logout", async (req, res) => {
   return res.status(200).json({ message: "Received data", data: req.body });
 });
 
-app.post("/verify", async (req, res) => {
-  return res.status(200).json({ message: "verify request" });
+app.get("/verify", async (req, res) => {
+  //for internal use
+  const { token } = req.body;
+  if (!token) {
+    res.status(400).json({ message: "No token provided cannot verify" });
+  }
+  try {
+    const result = await auth_functions.verify(token);
+    return res.status(result.status).json({ message: result.message });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: error });
+  }
 });
 
 const server_port = process.env.server_port;

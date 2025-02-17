@@ -60,4 +60,14 @@ async function login(user, pool_connection) {
   }
 }
 
-module.exports = { create_user, login };
+async function verify(token) {
+  try {
+    const verify_result = jwt.verify(token, process.env.jwt_secret);
+    console.log(verify_result);
+    return { status: 200, message: "Verified" };
+  } catch (error) {
+    throw new Error(error);
+  }
+}
+
+module.exports = { create_user, login, verify };
