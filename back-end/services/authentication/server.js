@@ -89,8 +89,7 @@ app.get("/verify", async (req, res) => {
     const result = await auth_functions.verify(token);
     return res.status(result.status).json({ message: result.message });
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({ message: error });
+    return res.status(500).json({ message: error.message });
   }
 });
 

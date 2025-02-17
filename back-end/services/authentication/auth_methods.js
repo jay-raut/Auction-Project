@@ -66,7 +66,7 @@ async function verify(token) {
     console.log(verify_result);
     return { status: 200, message: "Verified" };
   } catch (error) {
-    throw new Error(error);
+    return { status: 401, message: "Could not verify token" };
   }
 }
 
