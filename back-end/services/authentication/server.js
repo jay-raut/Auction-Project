@@ -1,7 +1,7 @@
 require("dotenv").config(); //environment variables
 const postgresFunctions = require("./postgres_methods.js");
 const express = require("express");
-const jwt = require("jsonwebtoken");
+
 const { Client, Pool } = require("pg");
 const jwt_secret = process.env.jwt_secret;
 
@@ -40,7 +40,7 @@ app.post("/register", async (req, res) => {
     return res.status(create_user_status.status).json({ message: create_user_status.message });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ message: "Something went wrong try again" });
+    return res.status(400).json({ message: "Something went wrong try again" });
   }
 });
 
@@ -51,8 +51,18 @@ app.post("/login", async (req, res) => {
   if (fields.some((value) => !value)) {
     return res.status(400).json({ error: `Missing or undefined field` });
   }
+  const user = {
+    username,
+    password,
+  };
 
-  return res.status(200).json({ message: "Received data", data: req.body });
+  try {
+    const login_user = await postgresFunctions.login(user, pool);
+    return res.status(login_user.status).json({ message: login_user.message, token: login_user.token });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ message: "Could not login check username or password" });
+  }
 });
 
 app.post("/logout", async (req, res) => {

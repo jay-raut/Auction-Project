@@ -1,4 +1,6 @@
+require("dotenv").config(); //environment variables
 const bcryptjs = require("bcryptjs"); //for hashing passwords
+const jwt = require("jsonwebtoken");
 
 async function create_user(user, address, pool_connection) {
   const client = await pool_connection.connect();
@@ -28,4 +30,34 @@ async function create_user(user, address, pool_connection) {
   }
 }
 
-module.exports = { create_user };
+async function login(user, pool_connection) {
+  const client = await pool_connection.connect();
+  try {
+    const get_user = await client.query("SELECT * FROM users WHERE username = $1", [user.username]);
+    if (get_user.rows.length != 1) {
+      //check if user exists
+      return { status: 400, message: "Could not login check username or password" };
+    }
+
+    const isPasswordValid = await bcryptjs.compare(user.password, get_user.rows[0].password_hash);
+    if (!isPasswordValid) {
+      //check password
+      return { status: 400, message: "Could not login check username or password" };
+    }
+    const token = {
+      username: get_user.rows[0].username,
+      user_id: get_user.rows[0].user_id,
+      first_name: get_user.rows[0].first_name,
+      last_name: get_user.rows[0].last_name,
+    };
+
+    const jwt_token = jwt.sign(token, process.env.jwt_secret, { expiresIn: "5hr" });
+    return { status: 200, message: "Login successful", token: jwt_token };
+  } catch (error) {
+    throw new Error(error);
+  } finally {
+    client.release();
+  }
+}
+
+module.exports = { create_user, login };
