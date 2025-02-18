@@ -1,7 +1,7 @@
 require("dotenv").config(); //environment variables
 const auth_functions = require("./auth_methods.js");
 const express = require("express");
-
+const cookieParser = require("cookie-parser");
 const { Pool } = require("pg");
 
 const POSTGRES_USER = process.env.POSTGRES_USER;
@@ -12,7 +12,7 @@ const POSTGRES_DATABASE = process.env.POSTGRES_DATABASE;
 
 const app = express();
 app.use(express.json());
-
+app.use(cookieParser());
 app.use((req, res, next) => {
   //port tagging for debugging
   console.log(`server got request to ${server_port} for ${req.url}`);
@@ -76,15 +76,40 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.post("/logout", async (req, res) => {
-  const { username, password } = req.body;
-  const fields = [username, password];
-  if (fields.some((value) => !value)) {
-    return res.status(400).json({ error: `Missing or undefined field` });
+app.post("/change-username", async (req, res) => {
+  const { new_username } = req.body;
+  const { token } = req.cookies;
+  if (!new_username) {
+    res.status(400).json({ messsage: "Missing new username" });
   }
+  if (!token) {
+    res.status(400).json({ messsage: "Missing session token" });
+  }
+  try {
+    const decrypted_token = await auth_functions.verify(token);
+    if (decrypted_token.status != 200) {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+    const username_change_result = await auth_functions.change_username(new_username, decrypted_token.user, pool);
 
-  return res.status(200).json({ message: "Received data", data: req.body });
+    if (username_change_result.status == 200) {
+      //changed success
+      res.cookie("token", username_change_result.token, {
+        httpOnly: true,
+        sameSite: "strict",
+        maxAge: 5 * 60 * 60 * 1000,
+      });
+      return res.status(username_change_result.status).json({ message: username_change_result.message });
+    }
+
+    return res.status(username_change_result.status).json({ message: username_change_result.message });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ message: "Could not change username" });
+  }
 });
+
+app.post("/change-password", async (req, res) => {});
 
 app.get("/verify", async (req, res) => {
   //for internal use
@@ -94,7 +119,7 @@ app.get("/verify", async (req, res) => {
   }
   try {
     const result = await auth_functions.verify(token);
-    return res.status(result.status).json({ message: result.message });
+    return res.status(result.status).json({ message: result.message, user: result.user });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

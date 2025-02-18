@@ -20,4 +20,23 @@ router.post(
 );
 
 
+router.post(
+  "/change-username",
+  createProxyMiddleware({
+    target: `http://localhost:4000`,
+    changeOrigin: true,
+  })
+);
+
+router.post(
+  "/change-password",
+  createProxyMiddleware({
+    target: `http://localhost:4000`,
+    changeOrigin: true,
+  })
+);
+
+
+
+
 module.exports = router;
