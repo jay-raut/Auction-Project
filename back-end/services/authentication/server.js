@@ -80,10 +80,10 @@ app.post("/change-username", async (req, res) => {
   const { new_username } = req.body;
   const { token } = req.cookies;
   if (!new_username) {
-    res.status(400).json({ messsage: "Missing new username" });
+    return res.status(400).json({ messsage: "Missing new username" });
   }
   if (!token) {
-    res.status(400).json({ messsage: "Missing session token" });
+    return res.status(400).json({ messsage: "Missing session token" });
   }
   try {
     const decrypted_token = await auth_functions.verify(token);
@@ -109,13 +109,42 @@ app.post("/change-username", async (req, res) => {
   }
 });
 
-app.post("/change-password", async (req, res) => {});
+app.post("/change-password", async (req, res) => {
+  const { old_password, new_password } = req.body;
+  const { token } = req.cookies;
+  if (!old_password || !new_password) {
+    return res.status(400).json({ messsage: "Missing new or old password" });
+  }
+  if (!token) {
+    return res.status(400).json({ messsage: "Missing session token" });
+  }
+  try {
+    const decrypted_token = await auth_functions.verify(token);
+    if (decrypted_token.status != 200) {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+    const password_change_result = await auth_functions.change_password(old_password, new_password, decrypted_token.user, pool);
+    if (password_change_result.status == 200) {
+      //changed success
+      res.cookie("token", password_change_result.token, {
+        httpOnly: true,
+        sameSite: "strict",
+        maxAge: 5 * 60 * 60 * 1000,
+      });
+      return res.status(password_change_result.status).json({ message: password_change_result.message });
+    }
+    return res.status(password_change_result.status).json({ message: password_change_result.message });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json("Could not change password");
+  }
+});
 
 app.get("/verify", async (req, res) => {
   //for internal use
   const { token } = req.body;
   if (!token) {
-    res.status(400).json({ message: "No token provided cannot verify" });
+    return res.status(400).json({ message: "No token provided cannot verify" });
   }
   try {
     const result = await auth_functions.verify(token);

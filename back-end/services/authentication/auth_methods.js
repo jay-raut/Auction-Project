@@ -92,7 +92,45 @@ async function change_username(new_username, user, pool_connection) {
   }
 }
 
-async function change_password(old_password, new_password, user, pool_connection) {}
+async function change_password(old_password, new_password, user, pool_connection) {
+  const client = await pool_connection.connect();
+  try {
+    const get_user = await client.query("SELECT * FROM users WHERE username = $1", [user.username]);
+    if (get_user.rows.length != 1) {
+      //check if user exists
+      return { status: 400, message: "Username doesn't exist" };
+    }
+    
+    const isPasswordValid = await bcryptjs.compare(old_password, get_user.rows[0].password_hash);
+    if (!isPasswordValid) {
+      //check password
+      return { status: 400, message: "Incorrect password" };
+    }
+    await client.query("BEGIN");
+
+    const query = "UPDATE users SET password_hash = $1 WHERE username = $2 RETURNING username";
+    const hashed_password = await bcryptjs.hash(new_password, 10);
+    const result = await client.query(query, [hashed_password, user.username]);
+
+    if (result.rows.length === 0) {
+      throw new Error("Result length 0");
+    }
+    const token = {
+      username: user.username,
+      user_id: user.user_id,
+      first_name: user.first_name,
+      last_name: user.last_name,
+    };
+    const new_token = sign_token(token);
+    await client.query("COMMIT");
+    return { status: 200, message: "Changed password", token: new_token };
+  } catch (error) {
+    await client.query("ROLLBACK"); //rollback the commits on failure
+    throw new Error(error);
+  } finally {
+    client.release();
+  }
+}
 
 async function verify(token) {
   try {
