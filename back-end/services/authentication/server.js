@@ -58,17 +58,20 @@ app.post("/login", async (req, res) => {
     return res.status(400).json({ error: `Missing or undefined field` });
   }
   const user = {
+    //credentials for login method
     username,
     password,
   };
 
   try {
     const login_user = await auth_functions.login(user, pool);
-    res.cookie("token", login_user.token, {
-      httpOnly: true,
-      sameSite: "strict",
-      maxAge: 5 * 60 * 60 * 1000,
-    });
+    if (login_user.status == 200) {
+      res.cookie("token", login_user.token, {
+        httpOnly: true,
+        sameSite: "strict",
+        maxAge: 5 * 60 * 60 * 1000,
+      });
+    }
     return res.status(login_user.status).json({ message: login_user.message });
   } catch (error) {
     console.log(error);
@@ -95,6 +98,7 @@ app.post("/change-username", async (req, res) => {
     if (username_change_result.status == 200) {
       //changed success
       res.cookie("token", username_change_result.token, {
+        //issue new token in cookie
         httpOnly: true,
         sameSite: "strict",
         maxAge: 5 * 60 * 60 * 1000,
@@ -113,6 +117,7 @@ app.post("/change-password", async (req, res) => {
   const { old_password, new_password } = req.body;
   const { token } = req.cookies;
   if (!old_password || !new_password) {
+    //checking if request has data
     return res.status(400).json({ messsage: "Missing new or old password" });
   }
   if (!token) {
@@ -127,6 +132,7 @@ app.post("/change-password", async (req, res) => {
     if (password_change_result.status == 200) {
       //changed success
       res.cookie("token", password_change_result.token, {
+        //issue new token in cookie
         httpOnly: true,
         sameSite: "strict",
         maxAge: 5 * 60 * 60 * 1000,
@@ -141,7 +147,7 @@ app.post("/change-password", async (req, res) => {
 });
 
 app.get("/verify", async (req, res) => {
-  //for internal use
+  //for internal use, will return a destructured json object with user data
   const { token } = req.body;
   if (!token) {
     return res.status(400).json({ message: "No token provided cannot verify" });
