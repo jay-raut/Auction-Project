@@ -1,24 +1,46 @@
 const express = require("express");
 const router = express.Router();
+require("dotenv").config('../.env'); //environment variables
+const { createProxyMiddleware } = require("http-proxy-middleware");
 
-router.get("/", async (req, res) => {
-  res.status(200).send({ route: "get all auctions" });
-});
+router.get(
+  "/",
+  createProxyMiddleware({
+    target: `http://${process.env.auction_service_address}`,
+    changeOrigin: true,
+  })
+);
+//auth service checking needed still
+router.post(
+  "/create",
+  createProxyMiddleware({
+    target: `http://${process.env.auction_service_address}`,
+    changeOrigin: true,
+  })
+);
 
-router.post("/create", async (req, res) => {
-  res.status(200).send({ route: "create auction" });
-});
+router.get(
+  "/:id",
+  createProxyMiddleware({
+    target: `http://${process.env.auction_service_address}`,
+    changeOrigin: true,
+  })
+);
 
-router.get("/:id", async (req, res) => {
-  res.status(200).json({ route: "auction", auctionId: req.params.id });
-});
+router.post(
+  "/bid/:id",
+  createProxyMiddleware({
+    target: `http://${process.env.auction_service_address}`,
+    changeOrigin: true,
+  })
+);
 
-router.post("/bid/:id", async (req, res) => { //bids on a auction using its id. the bid details will be in request body
-    res.status(200).send({route: "bid auction", bid: req.params.id});
-})
-
-router.get("/search/:query", async (req, res) => {
-    res.status(200).send({route: "search auction", search: req.params.query});
-})
+router.get(
+  "/search/:query",
+  createProxyMiddleware({
+    target: `http://${process.env.auction_service_address}`,
+    changeOrigin: true,
+  })
+);
 
 module.exports = router;

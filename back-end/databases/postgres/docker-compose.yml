@@ -3,7 +3,7 @@ version: '3.8'
 services:
   postgres:
     image: postgres:15  
-    container_name: my_postgres
+    container_name: auction_service_database
     restart: always
     environment:
       POSTGRES_USER: postgres
@@ -16,3 +16,4 @@ services:
 
 volumes:
   postgres_data:
+    external: true

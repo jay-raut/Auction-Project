@@ -6,7 +6,7 @@ const { createProxyMiddleware } = require("http-proxy-middleware");
 router.post(
   "/register",
   createProxyMiddleware({
-    target: `http://localhost:4000`,
+    target: `http://${process.env.auth_service_address}`,
     changeOrigin: true,
   })
 );
@@ -14,7 +14,7 @@ router.post(
 router.post(
   "/login",
   createProxyMiddleware({
-    target: `http://localhost:4000`,
+    target: `http://${process.env.auth_service_address}`,
     changeOrigin: true,
   })
 );
@@ -23,7 +23,7 @@ router.post(
 router.post(
   "/change-username",
   createProxyMiddleware({
-    target: `http://localhost:4000`,
+    target: `http://${process.env.auth_service_address}`,
     changeOrigin: true,
   })
 );
@@ -31,7 +31,7 @@ router.post(
 router.post(
   "/change-password",
   createProxyMiddleware({
-    target: `http://localhost:4000`,
+    target: `http://${process.env.auth_service_address}`,
     changeOrigin: true,
   })
 );
