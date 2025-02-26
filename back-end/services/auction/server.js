@@ -1,6 +1,8 @@
 require("dotenv").config(); //environment variables
+const redis = require("redis");
 const express = require("express");
 const cookieParser = require("cookie-parser");
+
 
 const app = express();
 app.use(express.json());
@@ -17,7 +19,7 @@ app.get("/", async (req, res) => {
 });
 
 app.post("/create", async (req, res) => {
-  res.status(200).send({ route: "create auction" });
+  
 });
 
 app.get("/:id", async (req, res) => {
@@ -34,3 +36,14 @@ app.get("/search/:query", async (req, res) => {
 
 const server_port = process.env.server_port;
 app.listen(server_port, console.log(`Auction server started on port ${server_port}`));
+
+//connecting to redis instance
+
+
+
+const redis_client = redis.createClient({
+  url: `redis://${process.env.REDIS_ADDRESS}:${[process.env.REDIS_PORT]}`
+});
+redis_client.connect();
+redis_client.on("connect", () => console.log("Redis connected"));
+redis_client.on("error", (err) => console.error("Redis connection error:", err));
