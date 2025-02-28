@@ -91,6 +91,40 @@ async function create_forward_auction(redis_client, pool_connection, auction_inf
   }
 }
 
+async function get_auction_by_id(id, pool_connection) {
+  const client = await pool_connection.connect();
+  try {
+    const auction_result = await client.query("SELECT * FROM auctions WHERE auction_id = $1", [id]);
+
+    if (auction_result.rows.length === 0) {
+      //check auction table
+      return { status: 404, message: "Auction not found" };
+    }
+
+    let auction_data = auction_result.rows[0];
+
+    const dutch_result = await client.query("SELECT * FROM dutch_auction WHERE auction_id = $1", [id]); //check dutch table
+    const forward_result = await client.query("SELECT * FROM forward_auction WHERE auction_id = $1", [id]); //check forward table
+    //one to one relationship between 'auctions' table and dutch/forward auction
+    if (dutch_result.rows.length > 0) {
+      auction_data = { ...auction_data, ...dutch_result.rows[0] };
+    }
+    if (forward_result.rows.length > 0) {
+      auction_data = { ...auction_data, ...forward_result.rows[0] };
+    }
+
+    return {
+      status: 200,
+      auction: auction_data,
+      message: "Auction found",
+    };
+  } catch (error) {
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 async function verify_token(token) {
   //sends a request to auth_service
   try {
@@ -114,4 +148,4 @@ async function verify_token(token) {
   }
 }
 
-module.exports = { create_dutch_auction, create_forward_auction, verify_token };
+module.exports = { create_dutch_auction, create_forward_auction, verify_token, get_auction_by_id };

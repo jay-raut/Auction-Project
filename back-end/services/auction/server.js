@@ -70,7 +70,20 @@ app.post("/create", async (req, res) => {
 });
 
 app.get("/:id", async (req, res) => {
-  res.status(200).json({ route: "auction", auctionId: req.params.id });
+  const param_id = req.params.id;
+  if (!param_id) {
+    return res.status(400).json({ messsage: "Missing auction id" });
+  }
+  try {
+    const find_auction_result = await auction_functions.get_auction_by_id(param_id, pool);
+    if (find_auction_result.status == 200) {
+      return res.status(200).json({ message: find_auction_result.message, auction: find_auction_result.auction });
+    }
+    return res.status(find_auction_result.status).json({ message: find_auction_result.message });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ message: "Could not find auction" });
+  }
 });
 
 app.post("/bid/:id", async (req, res) => {
