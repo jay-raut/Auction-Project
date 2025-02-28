@@ -1,5 +1,13 @@
 require("dotenv").config(); //environment variables
 
+async function create_base_auction(client, item_name, item_description, user, start_time, auction_type) {
+  //use only within a transaction
+
+  const auction_query = "INSERT INTO auctions (item_name, item_description, auction_owner, start_time, auction_type) VALUES($1, $2, $3, $4, $5) RETURNING *";
+  const auction_query_values = [item_name, item_description, user.user_id, start_time, auction_type];
+  return await client.query(auction_query, auction_query_values);
+}
+
 async function create_dutch_auction(redis_client, pool_connection, auction_info, user) {
   const { item_name, item_description, auction_type, start_time } = auction_info;
   if (!user) {
@@ -21,9 +29,8 @@ async function create_dutch_auction(redis_client, pool_connection, auction_info,
   const client = await pool_connection.connect();
   try {
     await client.query("BEGIN");
-    const auction_query = "INSERT INTO auctions (item_name, item_description, auction_owner, start_time) VALUES($1, $2, $3, $4) RETURNING *";
-    const auction_query_values = [item_name, item_description, user.user_id, unix_to_iso];
-    const auction_query_result = await client.query(auction_query, auction_query_values);
+
+    const auction_query_result = await create_base_auction(client, item_name, item_description, user, unix_to_iso, auction_type);
 
     const dutch_auction_query = "INSERT INTO dutch_auction (auction_id) VALUES($1)";
     const dutch_auction_query_values = [auction_query_result.rows[0].auction_id];
@@ -74,9 +81,7 @@ async function create_forward_auction(redis_client, pool_connection, auction_inf
   const client = await pool_connection.connect();
   try {
     await client.query("BEGIN");
-    const auction_query = "INSERT INTO auctions (item_name, item_description, auction_owner, start_time) VALUES($1, $2, $3, $4) RETURNING *";
-    const auction_query_values = [item_name, item_description, user.user_id, unix_to_iso];
-    const auction_query_result = await client.query(auction_query, auction_query_values);
+    const auction_query_result = await create_base_auction(client, item_name, item_description, user, unix_to_iso, auction_type);
 
     const forward_auction_query = "INSERT INTO forward_auction (auction_id, end_time) VALUES($1, $2)";
     const forward_auction_query_values = [auction_query_result.rows[0].auction_id, end_unix_to_iso];
