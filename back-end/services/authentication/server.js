@@ -146,7 +146,7 @@ app.post("/change-password", async (req, res) => {
   }
 });
 
-app.get("/verify", async (req, res) => {
+app.post("/verify", async (req, res) => {
   //for internal use, will return a destructured json object with user data
   const { token } = req.body;
   if (!token) {
