@@ -107,11 +107,13 @@ async function get_auction_by_id(id, pool_connection) {
     }
     let auction_data = auction_result.rows[0];
     let query_result;
-    if (auction_data.auction_type == "dutch_auction") { //hard coded 
+    if (auction_data.auction_type == "dutch_auction") {
+      //hard coded
       query_result = await client.query(`SELECT * FROM dutch_auction WHERE auction_id = $1`, [id]);
     } else if (auction_data.auction_type == "forward_auction") {
       query_result = await client.query(`SELECT * FROM forward_auction WHERE auction_id = $1`, [id]);
-    } else {//should never happen since auction_type is enforced as non-null in db
+    } else {
+      //should never happen since auction_type is enforced as non-null in db
       return { status: 400, message: "Missing auction type" };
     }
     //one to one relationship between 'auctions' table and dutch/forward auction
@@ -122,6 +124,40 @@ async function get_auction_by_id(id, pool_connection) {
       auction: auction_data,
       message: "Auction found",
     };
+  } catch (error) {
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+async function get_auction_by_name(item_name, pool_connection) {
+  const client = await pool_connection.connect();
+  try {
+    const auction_result = await client.query("SELECT * FROM auctions WHERE item_name = $1", [item_name]);
+    let auction_result_rows = auction_result.rows;
+    let auctions_with_details = [];
+
+    for (const auction of auction_result_rows) {
+      let auction_data = auction;
+      let query_result;
+
+      if (auction_data.auction_type === "dutch_auction") {
+        query_result = await client.query(`SELECT * FROM dutch_auction WHERE auction_id = $1`, [auction_data.auction_id]);
+      } else if (auction_data.auction_type === "forward_auction") {
+        query_result = await client.query(`SELECT * FROM forward_auction WHERE auction_id = $1`, [auction_data.auction_id]);
+      } else {
+        //should never happen since auction_type is enforced as non-null in db
+        return { status: 400, message: "Missing auction type" };
+      }
+
+      auctions_with_details.push({ ...auction_data, ...query_result.rows[0] });
+    }
+
+    if (auctions_with_details.length > 0) {
+      return { status: 200, message: "auctions found", auctions: auctions_with_details };
+    }
+    return { status: 404, message: "no auctions found" };
   } catch (error) {
     throw error;
   } finally {
@@ -152,4 +188,4 @@ async function verify_token(token) {
   }
 }
 
-module.exports = { create_dutch_auction, create_forward_auction, verify_token, get_auction_by_id };
+module.exports = { create_dutch_auction, create_forward_auction, verify_token, get_auction_by_id, get_auction_by_name };

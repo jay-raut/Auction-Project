@@ -92,7 +92,20 @@ app.post("/bid/:id", async (req, res) => {
 });
 
 app.get("/search/:query", async (req, res) => {
-  res.status(200).send({ route: "search auction", search: req.params.query });
+  const param_query = req.params.query;
+  if (!param_query) {
+    return res.status(400).json({ messsage: "Missing query" });
+  }
+  try {
+    const find_auction_result = await auction_functions.get_auction_by_name(param_query, pool);
+    if (find_auction_result.status == 200) {
+      return res.status(200).json({ message: find_auction_result.message, auctions: find_auction_result.auctions });
+    }
+    return res.status(find_auction_result.status).json({ message: find_auction_result.message });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ message: "Could not find auction" });
+  }
 });
 
 const server_port = process.env.server_port;
