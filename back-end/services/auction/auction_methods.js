@@ -105,18 +105,17 @@ async function get_auction_by_id(id, pool_connection) {
       //check auction table
       return { status: 404, message: "Auction not found" };
     }
-
     let auction_data = auction_result.rows[0];
-
-    const dutch_result = await client.query("SELECT * FROM dutch_auction WHERE auction_id = $1", [id]); //check dutch table
-    const forward_result = await client.query("SELECT * FROM forward_auction WHERE auction_id = $1", [id]); //check forward table
+    let query_result;
+    if (auction_data.auction_type == "dutch_auction") { //hard coded 
+      query_result = await client.query(`SELECT * FROM dutch_auction WHERE auction_id = $1`, [id]);
+    } else if (auction_data.auction_type == "forward_auction") {
+      query_result = await client.query(`SELECT * FROM forward_auction WHERE auction_id = $1`, [id]);
+    } else {//should never happen since auction_type is enforced as non-null in db
+      return { status: 400, message: "Missing auction type" };
+    }
     //one to one relationship between 'auctions' table and dutch/forward auction
-    if (dutch_result.rows.length > 0) {
-      auction_data = { ...auction_data, ...dutch_result.rows[0] };
-    }
-    if (forward_result.rows.length > 0) {
-      auction_data = { ...auction_data, ...forward_result.rows[0] };
-    }
+    auction_data = { ...auction_data, ...query_result.rows[0] };
 
     return {
       status: 200,
