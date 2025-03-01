@@ -1,15 +1,21 @@
 require("dotenv").config(); //environment variables
+const redis_auction_function = require("./redis_methods");
 
-async function create_base_auction(client, item_name, item_description, user, start_time, auction_type) {
+const create_auction_redis = {
+  dutch_auction: redis_auction_function.create_dutch_auction_redis,
+  forward_auction: redis_auction_function.create_forward_auction_redis,
+};
+
+async function create_base_auction(client, item_name, item_description, user, start_time, auction_type, starting_amount) {
   //use only within a transaction
 
-  const auction_query = "INSERT INTO auctions (item_name, item_description, auction_owner, start_time, auction_type) VALUES($1, $2, $3, $4, $5) RETURNING *";
-  const auction_query_values = [item_name, item_description, user.user_id, start_time, auction_type];
+  const auction_query = "INSERT INTO auctions (item_name, item_description, auction_owner, start_time, auction_type, starting_amount) VALUES($1, $2, $3, $4, $5, $6) RETURNING *";
+  const auction_query_values = [item_name, item_description, user.user_id, start_time, auction_type, starting_amount];
   return await client.query(auction_query, auction_query_values);
 }
 
 async function create_dutch_auction(redis_client, pool_connection, auction_info, user) {
-  const { item_name, item_description, auction_type, start_time } = auction_info;
+  const { item_name, item_description, auction_type, start_time, starting_amount } = auction_info;
   if (!user) {
     throw new Error("user is undefined");
   }
@@ -29,12 +35,17 @@ async function create_dutch_auction(redis_client, pool_connection, auction_info,
   const client = await pool_connection.connect();
   try {
     await client.query("BEGIN");
-
-    const auction_query_result = await create_base_auction(client, item_name, item_description, user, unix_to_iso, auction_type);
-
+    const auction_query_result = await create_base_auction(client, item_name, item_description, user, unix_to_iso, auction_type, starting_amount);
     const dutch_auction_query = "INSERT INTO dutch_auction (auction_id) VALUES($1)";
     const dutch_auction_query_values = [auction_query_result.rows[0].auction_id];
     await client.query(dutch_auction_query, dutch_auction_query_values);
+
+    //try to create auction in redis before commit
+
+    const create_auction_redis_result = await redis_auction_function.create_dutch_auction_redis(redis_client, auction_query_result.rows[0]);
+    if (create_auction_redis_result.status != 200) {
+      return { status: create_auction_redis_result.status, message: create_auction_redis_result.message };
+    }
     await client.query("COMMIT");
     return { status: 200, message: "Auction created", auction: auction_query_result.rows[0] };
   } catch (error) {
@@ -46,7 +57,7 @@ async function create_dutch_auction(redis_client, pool_connection, auction_info,
 }
 
 async function create_forward_auction(redis_client, pool_connection, auction_info, user) {
-  const { item_name, item_description, auction_type, start_time, end_time } = auction_info;
+  const { item_name, item_description, auction_type, start_time, end_time, starting_amount } = auction_info;
   if (!user) {
     throw new Error("user is undefined");
   }
@@ -81,12 +92,19 @@ async function create_forward_auction(redis_client, pool_connection, auction_inf
   const client = await pool_connection.connect();
   try {
     await client.query("BEGIN");
-    const auction_query_result = await create_base_auction(client, item_name, item_description, user, unix_to_iso, auction_type);
-
-    const forward_auction_query = "INSERT INTO forward_auction (auction_id, end_time) VALUES($1, $2)";
+    const auction_query_result = await create_base_auction(client, item_name, item_description, user, unix_to_iso, auction_type, starting_amount);
+    const forward_auction_query = "INSERT INTO forward_auction (auction_id, end_time) VALUES($1, $2) RETURNING *";
     const forward_auction_query_values = [auction_query_result.rows[0].auction_id, end_unix_to_iso];
-    await client.query(forward_auction_query, forward_auction_query_values);
+    const forward_auction_query_result = await client.query(forward_auction_query, forward_auction_query_values);
+
+    //try to create auction in redis before commit
+    const create_auction_redis_result = await redis_auction_function.create_forward_auction_redis(redis_client, auction_query_result.rows[0], forward_auction_query_result.rows[0].end_time);
+    if (create_auction_redis_result.status != 200) {
+      return { status: create_auction_redis_result.status, message: create_auction_redis_result.message };
+    }
+
     await client.query("COMMIT");
+
     return { status: 200, message: "Auction created", auction: auction_query_result.rows[0] };
   } catch (error) {
     await client.query("ROLLBACK");

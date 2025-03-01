@@ -1,5 +1,7 @@
 require("dotenv").config(); //environment variables
 const auction_functions = require("./auction_methods");
+const auction_functions_redis = require("./redis_methods");
+
 const redis = require("redis");
 const express = require("express");
 const cookieParser = require("cookie-parser");
@@ -47,8 +49,8 @@ app.post("/create", async (req, res) => {
     return res.sendStatus(verify_result.status).messsage("Could not verify session. Log in again");
   }
 
-  const { item_name, item_description, auction_type, start_time } = req.body; //an auction must have minimum these variables in the request
-  const fields = [item_name, item_description, auction_type, start_time];
+  const { item_name, item_description, auction_type, start_time, starting_amount } = req.body; //an auction must have minimum these variables in the request
+  const fields = [item_name, item_description, auction_type, start_time, starting_amount];
   if (fields.some((value) => !value)) {
     return res.status(400).json({ error: `Missing or undefined field` });
   }
@@ -87,8 +89,31 @@ app.get("/:id", async (req, res) => {
 });
 
 app.post("/bid/:id", async (req, res) => {
-  //bids on a auction using its id. the bid details will be in request body
-  res.status(200).send({ route: "bid auction", bid: req.params.id });
+  const { token } = req.cookies;
+  if (!token) {
+    //check for token
+    return res.status(401).json({ messsage: "Missing session token" });
+  }
+  const verify_result = await auction_functions.verify_token(token);
+  if (verify_result.status != 200) {
+    return res.sendStatus(verify_result.status).messsage("Could not verify session. Log in again");
+  }
+  const auction_id = req.params.id;
+  const { bid } = req.body;
+  if (typeof bid !== "number" || isNaN(bid)) {
+    return res.status(400).json({ message: "Invalid bid amount" });
+  }
+
+  try {
+    const bid_result = await auction_functions_redis.handle_bid(redis_client, auction_id, bid, verify_result.user);
+    if (bid_result.status == 200) {
+      return res.status(200).json({ message: "bid successful" });
+    }
+    return res.status(bid_result.status).json({ message: bid_result.message });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ message: "Could not bid" });
+  }
 });
 
 app.get("/search/:query", async (req, res) => {
