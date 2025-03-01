@@ -81,6 +81,13 @@ async function bid_dutch(redis_client, auction_id, bid_amount, user) {
 }
 
 async function bid_forward(redis_client, auction_id, bid_amount, user) {
+  const auction_key = `auction:${auction_id}`;
+  const auction = await redis_client.hGetAll(auction_key);
+
+  if (bid_amount <= auction.starting_amount) {
+    return { status: 400, message: `Bid amount must be greater than ${auction.starting_amount}` };
+  }
+
   const bids_key = `bids:${auction_id}`;
 
   const highest_bid = await redis_client.zRangeWithScores(bids_key, -1, -1);
