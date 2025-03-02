@@ -152,7 +152,7 @@ async function get_auction_by_id(id, pool_connection) {
 async function get_auction_by_name(item_name, pool_connection) {
   const client = await pool_connection.connect();
   try {
-    const auction_result = await client.query("SELECT * FROM auctions WHERE item_name = $1", [item_name]);
+    const auction_result = await client.query("SELECT * FROM auctions WHERE item_name LIKE $1", [`%${item_name}%`]);
     let auction_result_rows = auction_result.rows;
     let auctions_with_details = [];
 
