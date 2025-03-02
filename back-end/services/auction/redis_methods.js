@@ -3,7 +3,7 @@ const bid_functions = {
   dutch_auction: bid_dutch,
   forward_auction: bid_forward,
 };
-async function create_dutch_auction_redis(redis_client, auction_details) {
+async function create_dutch_auction_redis(redis_client, auction_details, start_time) {
   if (!redis_client) {
     return { status: 400, message: "redis_client not initalized" };
   }
@@ -12,7 +12,7 @@ async function create_dutch_auction_redis(redis_client, auction_details) {
   }
   console.log(auction_details);
   await redis_client.hSet(`auction:${auction_details.auction_id}`, {
-    start_time: auction_details.start_time.toString(),
+    start_time: start_time,
     is_active: 0,
     auction_owner: auction_details.auction_owner,
     auction_type: "dutch_auction",
@@ -21,7 +21,7 @@ async function create_dutch_auction_redis(redis_client, auction_details) {
   return { status: 200, message: "created auction in redis" };
 }
 
-async function create_forward_auction_redis(redis_client, auction_details, end_time) {
+async function create_forward_auction_redis(redis_client, auction_details, start_time, end_time) {
   if (!redis_client) {
     return { status: 400, message: "redis_client not initalized" };
   }
@@ -30,8 +30,8 @@ async function create_forward_auction_redis(redis_client, auction_details, end_t
   }
 
   await redis_client.hSet(`auction:${auction_details.auction_id}`, {
-    start_time: auction_details.start_time.toString(),
-    end_time: end_time.toString(),
+    start_time: start_time,
+    end_time: end_time,
     is_active: 0,
     auction_owner: auction_details.auction_owner,
     auction_type: "forward_auction",

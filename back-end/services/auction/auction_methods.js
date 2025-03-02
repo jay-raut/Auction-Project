@@ -42,7 +42,7 @@ async function create_dutch_auction(redis_client, pool_connection, auction_info,
 
     //try to create auction in redis before commit
 
-    const create_auction_redis_result = await redis_auction_function.create_dutch_auction_redis(redis_client, auction_query_result.rows[0]);
+    const create_auction_redis_result = await redis_auction_function.create_dutch_auction_redis(redis_client, auction_query_result.rows[0], unix_to_iso);
     if (create_auction_redis_result.status != 200) {
       return { status: create_auction_redis_result.status, message: create_auction_redis_result.message };
     }
@@ -98,7 +98,7 @@ async function create_forward_auction(redis_client, pool_connection, auction_inf
     const forward_auction_query_result = await client.query(forward_auction_query, forward_auction_query_values);
 
     //try to create auction in redis before commit
-    const create_auction_redis_result = await redis_auction_function.create_forward_auction_redis(redis_client, auction_query_result.rows[0], forward_auction_query_result.rows[0].end_time);
+    const create_auction_redis_result = await redis_auction_function.create_forward_auction_redis(redis_client, auction_query_result.rows[0], unix_to_iso, end_unix_to_iso);
     if (create_auction_redis_result.status != 200) {
       return { status: create_auction_redis_result.status, message: create_auction_redis_result.message };
     }
