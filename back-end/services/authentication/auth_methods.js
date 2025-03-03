@@ -47,6 +47,23 @@ async function create_address(user, address, pool_connection) {
   }
 }
 
+async function create_payment_method(user, payment_method, pool_connection) {
+  const client = await pool_connection.connect();
+  try {
+    const { card_number, name_on_card, expiration_date } = payment_method;
+    await client.query("BEGIN");
+    const payment_values = [user.user_id, card_number, name_on_card, expiration_date];
+    await client.query("INSERT INTO payment_methods (user_id, card_number, name_on_card, expiration_date) VALUES ($1, $2, $3, $4)", payment_values);
+    await client.query("COMMIT");
+    return { status: 200, message: "Added new payment method successfully" };
+  } catch (error) {
+    await client.query("ROLLBACK"); //rollback the commits on failure
+    throw new Error(error);
+  } finally {
+    client.release();
+  }
+}
+
 async function login(user, pool_connection) {
   const client = await pool_connection.connect();
   try {
@@ -166,4 +183,4 @@ function sign_token(token) {
   return jwt.sign(token, process.env.jwt_secret, { expiresIn: "5hr" });
 }
 
-module.exports = { create_user, login, verify, sign_token, change_password, change_username, create_address };
+module.exports = { create_user, login, verify, sign_token, change_password, change_username, create_address, create_payment_method };

@@ -19,7 +19,6 @@ router.post(
   })
 );
 
-
 router.post(
   "/change-username",
   createProxyMiddleware({
@@ -36,7 +35,20 @@ router.post(
   })
 );
 
+router.post(
+  "/create-address",
+  createProxyMiddleware({
+    target: `http://${process.env.auth_service_address}`,
+    changeOrigin: true,
+  })
+);
 
-
+router.post(
+  "/create-payment-method",
+  createProxyMiddleware({
+    target: `http://${process.env.auth_service_address}`,
+    changeOrigin: true,
+  })
+);
 
 module.exports = router;

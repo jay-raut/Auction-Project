@@ -146,6 +146,72 @@ app.post("/change-password", async (req, res) => {
   }
 });
 
+app.post("/create-address", async (req, res) => {
+  const { token } = req.cookies;
+  if (!token) {
+    return res.status(400).json({ messsage: "Missing session token" });
+  }
+  const { street_address, street_number, zip_code, city, country } = req.body;
+  const fields = [street_address, street_number, zip_code, city, country];
+
+  if (fields.some((value) => !value)) {
+    return res.status(400).json({ error: `Missing or undefined field` });
+  }
+
+  const addressData = {
+    street_address,
+    street_number,
+    zip_code,
+    city,
+    country,
+  };
+
+  try {
+    const decrypted_token = await auth_functions.verify(token);
+    if (decrypted_token.status != 200) {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+    const create_address_status = await auth_functions.create_address(decrypted_token.user, addressData, pool);
+    return res.status(create_address_status.status).json({ message: create_address_status.message });
+  } catch {
+    console.log(error);
+    res.status(400).json({ message: "Could not create new address" });
+  }
+});
+
+app.post("/create-payment-method", async (req, res) => {
+  const { token } = req.cookies;
+  if (!token) {
+    return res.status(400).json({ messsage: "Missing session token" });
+  }
+  const { card_number, name_on_card, expiration_date } = req.body;
+  const fields = [card_number, name_on_card, expiration_date];
+  if (fields.some((value) => !value)) {
+    return res.status(400).json({ error: `Missing or undefined field` });
+  }
+  const { year, month } = expiration_date;
+  if (!year || !month) {
+    return res.status(400).json({ error: `Missing or undefined field in expiration` });
+  }
+
+  const paymentData = {
+    card_number,
+    name_on_card,
+    expiration_date,
+  };
+  try {
+    const decrypted_token = await auth_functions.verify(token);
+    if (decrypted_token.status != 200) {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+    const create_payment_result = await auth_functions.create_payment_method(decrypted_token.user, paymentData, pool);
+    return res.status(create_payment_result.status).json({ message: create_payment_result.message });
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ message: "Could not create payment method" });
+  }
+});
+
 app.post("/verify", async (req, res) => {
   //for internal use, will return a destructured json object with user data
   const { token } = req.body;
