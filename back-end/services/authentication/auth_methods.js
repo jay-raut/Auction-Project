@@ -31,6 +31,22 @@ async function create_user(user, address, pool_connection) {
   }
 }
 
+async function create_address(user, address, pool_connection) {
+  const client = await pool_connection.connect();
+  try {
+    await client.query("BEGIN"); //start transaction query
+    const address_values = [user.user_id, address.street_address, address.street_number, address.zip_code, address.city, address.country];
+    await client.query("INSERT INTO addresses (user_id, street_address, street_number, zip_code, city, country) VALUES ($1, $2, $3, $4, $5, $6)", address_values);
+    await client.query("COMMIT"); //end transaction
+    return { status: 200, message: "Added new address successfully" };
+  } catch (error) {
+    await client.query("ROLLBACK"); //rollback the commits on failure
+    throw new Error(error);
+  } finally {
+    client.release();
+  }
+}
+
 async function login(user, pool_connection) {
   const client = await pool_connection.connect();
   try {
@@ -150,4 +166,4 @@ function sign_token(token) {
   return jwt.sign(token, process.env.jwt_secret, { expiresIn: "5hr" });
 }
 
-module.exports = { create_user, login, verify, sign_token, change_password, change_username };
+module.exports = { create_user, login, verify, sign_token, change_password, change_username, create_address };

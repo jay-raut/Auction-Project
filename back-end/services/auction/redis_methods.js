@@ -90,6 +90,11 @@ async function bid_forward(redis_client, auction_id, bid_amount, user) {
     return { status: 400, message: `Bid amount must be greater than ${auction.starting_amount}` };
   }
 
+  const now = Date.now();
+  if (new Date(auction.end_time).getTime() < now) {
+    return { status: 400, message: `Bidding is finished on this auction` };
+  }
+
   const bids_key = `bids:${auction_id}`;
 
   const highest_bid = await redis_client.zRangeWithScores(bids_key, -1, -1);

@@ -1,6 +1,7 @@
 require("dotenv").config(); //environment variables
 const auction_functions = require("./auction_methods");
 const auction_functions_redis = require("./redis_methods");
+const auction_event_functions = require("./auction_event_methods");
 const { Kafka } = require("kafkajs");
 
 const redis = require("redis");
@@ -168,12 +169,15 @@ const run = async () => {
       try {
         if (data.event_type == "auction.start") {
           console.log(`${JSON.parse(data.auction).auction_id} needs to start`);
-          await auction_functions.start_auction(JSON.parse(data.auction), pool, redis_client);
+          await auction_event_functions.start_auction(JSON.parse(data.auction), pool, redis_client);
         }
         if (data.event_type == "auction.stop") {
+          //auction ended and a winner is needed
           console.log(`${JSON.parse(data.auction).auction_id} needs to stop`);
+          await auction_event_functions.stop_auction(JSON.parse(data.auction), pool, redis_client);
         }
-      } catch (error) { //just print for testing
+      } catch (error) {
+        //just print for testing
         console.log(error);
       }
     },
