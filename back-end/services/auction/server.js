@@ -1,6 +1,7 @@
 require("dotenv").config(); //environment variables
 const auction_functions = require("./auction_methods");
 const auction_functions_redis = require("./redis_methods");
+const { Kafka } = require("kafkajs");
 
 const redis = require("redis");
 const express = require("express");
@@ -153,3 +154,30 @@ const pool = new Pool({
   port: POSTGRES_PORT,
   database: POSTGRES_DATABASE,
 });
+
+//connecting to kafka instance and listening for events
+const kafka = new Kafka({ clientId: "auction-service", brokers: [`${process.env.kafka_address}:${process.env.kafka_port}`] });
+const consumer = kafka.consumer({ groupId: "auction-consumers" });
+const run = async () => {
+  await consumer.connect();
+  await consumer.subscribe({ topics: ["auction.start", "auction.stop"], fromBeginning: false });
+
+  await consumer.run({
+    eachMessage: async ({ partition, message }) => {
+      const data = JSON.parse(message.value.toString());
+      try {
+        if (data.event_type == "auction.start") {
+          console.log(`${JSON.parse(data.auction).auction_id} needs to start`);
+          await auction_functions.start_auction(JSON.parse(data.auction), pool, redis_client);
+        }
+        if (data.event_type == "auction.stop") {
+          console.log(`${JSON.parse(data.auction).auction_id} needs to stop`);
+        }
+      } catch (error) { //just print for testing
+        console.log(error);
+      }
+    },
+  });
+};
+
+run().catch(console.error);

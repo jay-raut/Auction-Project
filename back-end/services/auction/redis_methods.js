@@ -12,6 +12,7 @@ async function create_dutch_auction_redis(redis_client, auction_details, start_t
   }
   console.log(auction_details);
   await redis_client.hSet(`auction:${auction_details.auction_id}`, {
+    auction_id: auction_details.auction_id,
     start_time: start_time,
     is_active: 0,
     auction_owner: auction_details.auction_owner,
@@ -30,6 +31,7 @@ async function create_forward_auction_redis(redis_client, auction_details, start
   }
 
   await redis_client.hSet(`auction:${auction_details.auction_id}`, {
+    auction_id: auction_details.auction_id,
     start_time: start_time,
     end_time: end_time,
     is_active: 0,
@@ -102,4 +104,17 @@ async function bid_forward(redis_client, auction_id, bid_amount, user) {
   return { status: 200, message: `Bid placed: ${bid_amount}` };
 }
 
-module.exports = { create_dutch_auction_redis, create_forward_auction_redis, handle_bid };
+async function set_is_active(auction_id, redis_client) {
+  const auction_key = `auction:${auction_id}`;
+
+  const exists = await redis_client.exists(auction_key);
+  if (!exists) {
+    console.error(`Auction ${auction_id} does not exist.`);
+    return;
+  }
+
+  await redis_client.hSet(auction_key, "is_active", "1");
+  console.log(`Auction ${auction_id} is now active.`);
+}
+
+module.exports = { create_dutch_auction_redis, create_forward_auction_redis, handle_bid, set_is_active };

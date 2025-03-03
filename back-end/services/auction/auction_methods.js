@@ -183,6 +183,23 @@ async function get_auction_by_name(item_name, pool_connection) {
   }
 }
 
+async function start_auction(auction, pool_connection, redis_client) {
+  const client = await pool_connection.connect();
+  try {
+    await client.query("BEGIN");
+    const update_active_query = "UPDATE auctions SET is_active = true WHERE auction_id = $1";
+    await client.query(update_active_query, [auction.auction_id]);
+
+    await redis_auction_function.set_is_active(auction.auction_id, redis_client);
+    await client.query("COMMIT");
+  } catch (error) {
+    await client.query("ROLLBACK");
+    console.log(error);
+  } finally {
+    client.release();
+  }
+}
+
 async function verify_token(token) {
   //sends a request to auth_service
   try {
@@ -206,4 +223,4 @@ async function verify_token(token) {
   }
 }
 
-module.exports = { create_dutch_auction, create_forward_auction, verify_token, get_auction_by_id, get_auction_by_name };
+module.exports = { create_dutch_auction, create_forward_auction, verify_token, get_auction_by_id, get_auction_by_name, start_auction };
