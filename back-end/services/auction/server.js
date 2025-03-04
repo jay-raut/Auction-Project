@@ -157,8 +157,15 @@ const pool = new Pool({
 });
 
 //connecting to kafka instance and listening for events
-const kafka = new Kafka({ clientId: "auction-service", brokers: [`${process.env.kafka_address}:${process.env.kafka_port}`] });
-const consumer = kafka.consumer({ groupId: "auction-consumers" });
+const kafka = new Kafka({ clientId: `auction-service-client-${server_port}`, brokers: [`${process.env.kafka_address}:${process.env.kafka_port}`] });
+const consumer = kafka.consumer({
+  groupId: "auction-consumers",
+  groupInstanceId: `auction-service-${server_port}`,
+  sessionTimeout: 30000,
+  heartbeatInterval: 10000, 
+  maxPollInterval: 300000, 
+});
+const producer = kafka.producer();
 const run = async () => {
   await consumer.connect();
   await consumer.subscribe({ topics: ["auction.start", "auction.stop"], fromBeginning: false });
@@ -174,7 +181,7 @@ const run = async () => {
         if (data.event_type == "auction.stop") {
           //auction ended and a winner is needed
           console.log(`${JSON.parse(data.auction).auction_id} needs to stop`);
-          await auction_event_functions.stop_auction(JSON.parse(data.auction), pool, redis_client);
+          await auction_event_functions.stop_auction(JSON.parse(data.auction), pool, redis_client, producer);
         }
       } catch (error) {
         //just print for testing

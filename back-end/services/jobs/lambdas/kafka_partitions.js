@@ -27,3 +27,4 @@ async function create_topic(topic, new_partition_count) {
 
 create_topic("auction.start", 20);
 create_topic("auction.stop", 20);
+create_topic("order.create", 20);
