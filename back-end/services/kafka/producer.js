@@ -1,6 +1,6 @@
 const { Kafka } = require("kafkajs");
 
-const kafka = new Kafka({ clientId: "auction-service", brokers: ["localhost:29092"] });
+const kafka = new Kafka({ clientId: "auction-test", brokers: ["localhost:29092"] });
 const producer = kafka.producer();
 
 const sendBidEvent = async (auctionId, bidAmount, userId, usePartitionKey = false) => {

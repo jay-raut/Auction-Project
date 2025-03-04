@@ -10,7 +10,7 @@ redis_client.on("connect", () => console.log("Redis connected"));
 redis_client.on("error", (err) => console.error("Redis connection error:", err));
 
 const kafka = new Kafka({
-  clientId: "auction-service",
+  clientId: "auction-service-producer",
   brokers: [`${process.env.kafka_address}:${process.env.kafka_port}`],
 });
 const producer = kafka.producer();
@@ -30,7 +30,7 @@ async function check_auctions() {
 
   for (let auction_key of get_auctions) {
     const auction_value = await redis_client.hGetAll(auction_key);
-    if (new Date(auction_value.start_time).getTime() < now && auction_value.is_active != true) {
+    if (new Date(auction_value.start_time).getTime() < now && auction_value.is_active != true && auction_value.has_ended != true) {
       await notify_auction_start_stop({
         event_type: "auction.start",
         auction: JSON.stringify(auction_value),
@@ -50,14 +50,14 @@ async function check_auctions() {
 }
 
 async function check_forward_ending(auction_value) {
-  if (new Date(auction_value.end_time).getTime() < now && auction_value.is_active == true) {
+  if (new Date(auction_value.end_time).getTime() < now && auction_value.is_active == true && auction_value.has_ended != true) {
     return true;
   }
   return false;
 }
 
 async function notify_auction_start_stop(event) {
-  const message = { event_type: event.event_type, auction: event.auction };
+  const message = { event_type: event.event_type, auction: event.auction, timestamp: new Date().getTime() };
   try {
     await producer.send({
       topic: event.event_type,
@@ -68,4 +68,4 @@ async function notify_auction_start_stop(event) {
   }
 }
 
-setInterval(check_auctions, 1_000); // Job runs every second
+setInterval(check_auctions, 2_000); // Job runs every second

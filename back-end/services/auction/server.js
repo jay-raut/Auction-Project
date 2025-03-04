@@ -167,7 +167,11 @@ const consumer = kafka.consumer({
 });
 const producer = kafka.producer();
 const run = async () => {
+  
+
+  
   await consumer.connect();
+  await producer.connect();
   await consumer.subscribe({ topics: ["auction.start", "auction.stop"], fromBeginning: false });
 
   await consumer.run({
@@ -190,5 +194,7 @@ const run = async () => {
     },
   });
 };
+
+
 
 run().catch(console.error);

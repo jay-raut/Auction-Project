@@ -18,6 +18,7 @@ async function create_dutch_auction_redis(redis_client, auction_details, start_t
     auction_owner: auction_details.auction_owner,
     auction_type: "dutch_auction",
     starting_amount: auction_details.starting_amount,
+    has_ended: 0
   });
   return { status: 200, message: "created auction in redis" };
 }
@@ -38,6 +39,7 @@ async function create_forward_auction_redis(redis_client, auction_details, start
     auction_owner: auction_details.auction_owner,
     auction_type: "forward_auction",
     starting_amount: auction_details.starting_amount,
+    has_ended: 0
   });
   return { status: 200, message: "created auction in redis" };
 }

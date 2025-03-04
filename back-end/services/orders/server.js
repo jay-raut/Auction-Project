@@ -89,7 +89,7 @@ const pool = new Pool({
   database: POSTGRES_DATABASE,
 });
 
-const kafka = new Kafka({ clientId: "orders-service", brokers: [`${process.env.kafka_address}:${process.env.kafka_port}`] });
+const kafka = new Kafka({ clientId: `orders-service${server_port}`, brokers: [`${process.env.kafka_address}:${process.env.kafka_port}`] });
 const consumer = kafka.consumer({ groupId: "order-consumers" });
 const run = async () => {
   await consumer.connect();
