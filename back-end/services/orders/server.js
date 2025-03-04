@@ -89,6 +89,24 @@ const pool = new Pool({
   database: POSTGRES_DATABASE,
 });
 
+const auction_details = {
+  event_type: "order.create",
+  user: "0a6a7b13-fe38-4a20-9bd7-1ce83168a94c",
+  winning_amount: 100,
+  auction: {
+    auction_id: "f9340afb-ba0f-4e69-b428-b4f1cf0faf1d",
+    start_time: "2025-03-04T05:57:21.240Z",
+    end_time: "2025-03-03T10:57:03.000Z",
+    is_active: "1",
+    auction_owner: "0a6a7b13-fe38-4a20-9bd7-1ce83168a94c",
+    auction_type: "forward_auction",
+    starting_amount: "10",
+    has_ended: "0",
+  },
+};
+
+order_functions.create_order(auction_details, pool);
+
 const kafka = new Kafka({ clientId: `orders-service${server_port}`, brokers: [`${process.env.kafka_address}:${process.env.kafka_port}`] });
 const consumer = kafka.consumer({ groupId: "order-consumers" });
 const run = async () => {

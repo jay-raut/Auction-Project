@@ -1,8 +1,25 @@
 require("dotenv").config(); //environment variables
 
-async function create_order(auction, user_id, pool_connection) {
-  console.log(auction);
-  console.log(user_id);
+async function create_order(auction_details, pool_connection) {
+  const client = await pool_connection.connect();
+  try {
+    const check_existing_order = await client.query("SELECT * from orders WHERE auction_id = $1", [auction_details.auction.auction_id]);
+    if (check_existing_order.rows.length > 0) {
+      console.log(`order already exists for ${auction_details.auction.auction_id}`);
+      return;
+    }
+    await client.query("BEGIN");
+    const create_order_query = "INSERT INTO orders (auction_id, user_winner_id, user_seller_id,final_price) VALUES ($1, $2, $3, $4) RETURNING *";
+    const query_result = await client.query(create_order_query, [auction_details.auction.auction_id, auction_details.user, auction_details.auction.auction_owner, auction_details.winning_amount]);
+    await client.query("COMMIT");
+
+    const create_order = "";
+  } catch (error) {
+    console.log(error);
+    await client.query("ROLLBACK");
+  } finally {
+    client.release();
+  }
 }
 
 async function get_order_by_id(order_id, user_id, pool_connection) {
@@ -30,7 +47,6 @@ async function get_order_by_id(order_id, user_id, pool_connection) {
 }
 
 async function get_all_orders(user_id, pool_connection) {
-
   const client = await pool_connection.connect();
   try {
     const query_result = await client.query("SELECT * from orders WHERE user_winner_id = $1", [user_id]);
