@@ -46,10 +46,6 @@ app.post("/create", async (req, res) => {
     //check for token
     return res.status(401).json({ messsage: "Missing session token" });
   }
-  const verify_result = await auction_functions.verify_token(token);
-  if (verify_result.status != 200) {
-    return res.sendStatus(verify_result.status).messsage("Could not verify session. Log in again");
-  }
 
   const { item_name, item_description, auction_type, start_time, starting_amount } = req.body; //an auction must have minimum these variables in the request
   const fields = [item_name, item_description, auction_type, start_time, starting_amount];
@@ -62,6 +58,10 @@ app.post("/create", async (req, res) => {
   }
 
   try {
+    const verify_result = await auction_functions.verify_token(token);
+    if (verify_result.status != 200) {
+      return res.status(verify_result.status).json({message: "Could not verify session. Log in again"});
+    }
     const create_auction_result = await create_auction_handlers[auction_type](redis_client, pool, req.body, verify_result.user);
     if (create_auction_result.status == 200) {
       return res.status(200).json({ message: create_auction_result.message, auction_info: create_auction_result.auction });
@@ -96,10 +96,7 @@ app.post("/bid/:id", async (req, res) => {
     //check for token
     return res.status(401).json({ messsage: "Missing session token" });
   }
-  const verify_result = await auction_functions.verify_token(token);
-  if (verify_result.status != 200) {
-    return res.sendStatus(verify_result.status).messsage("Could not verify session. Log in again");
-  }
+
   const auction_id = req.params.id;
   const { bid } = req.body;
   if (typeof bid !== "number" || isNaN(bid)) {
@@ -107,6 +104,10 @@ app.post("/bid/:id", async (req, res) => {
   }
 
   try {
+    const verify_result = await auction_functions.verify_token(token);
+    if (verify_result.status != 200) {
+      return res.status(verify_result.status).json({message: "Could not verify session. Log in again"});
+    }
     const bid_result = await auction_functions_redis.handle_bid(redis_client, auction_id, bid, verify_result.user);
     if (bid_result.status == 200) {
       return res.status(200).json({ message: "bid successful" });
@@ -132,6 +133,13 @@ app.get("/search/:query", async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).json({ message: "Could not find auction" });
+  }
+});
+
+app.post("/buy-now/:id", async (req, res) => {
+  const param_query = req.params.query;
+  if (!param_query) {
+    return res.status(400).json({ messsage: "Missing query" });
   }
 });
 
@@ -162,14 +170,11 @@ const consumer = kafka.consumer({
   groupId: "auction-consumers",
   groupInstanceId: `auction-service-${server_port}`,
   sessionTimeout: 30000,
-  heartbeatInterval: 10000, 
-  maxPollInterval: 300000, 
+  heartbeatInterval: 10000,
+  maxPollInterval: 300000,
 });
 const producer = kafka.producer();
 const run = async () => {
-  
-
-  
   await consumer.connect();
   await producer.connect();
   await consumer.subscribe({ topics: ["auction.start", "auction.stop"], fromBeginning: false });
@@ -194,7 +199,5 @@ const run = async () => {
     },
   });
 };
-
-
 
 run().catch(console.error);
