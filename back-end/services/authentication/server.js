@@ -212,6 +212,48 @@ app.post("/create-payment-method", async (req, res) => {
   }
 });
 
+app.get("/payment", async (req, res) => {
+  const { token } = req.cookies;
+  if (!token) {
+    return res.status(400).json({ messsage: "Missing session token" });
+  }
+  try {
+    const decrypted_token = await auth_functions.verify(token);
+    if (decrypted_token.status != 200) {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+    const get_payment_methods = await auth_functions.get_payment_methods(decrypted_token.user, pool);
+    if (get_payment_methods.status == 200) {
+      return res.status(200).json({ message: get_payment_methods.message, payments: get_payment_methods.payments });
+    }
+    return res.status(get_payment_methods.status).json({ message: get_payment_methods.message });
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ message: "Could not get payment methods" });
+  }
+});
+
+app.get("/address", async (req, res) => {
+  const { token } = req.cookies;
+  if (!token) {
+    return res.status(400).json({ messsage: "Missing session token" });
+  }
+  try {
+    const decrypted_token = await auth_functions.verify(token);
+    if (decrypted_token.status != 200) {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+    const get_addresses = await auth_functions.get_addresses(decrypted_token.user, pool);
+    if (get_addresses.status == 200) {
+      return res.status(200).json({ message: get_addresses.message, addresses: get_addresses.addresses });
+    }
+    return res.status(get_addresses.status).json({ message: get_addresses.message });
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ message: "Could not get payment methods" });
+  }
+});
+
 app.post("/verify", async (req, res) => {
   //for internal use, will return a destructured json object with user data
   const { token } = req.body;

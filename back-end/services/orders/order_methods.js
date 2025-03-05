@@ -58,6 +58,49 @@ async function get_all_orders(user_id, pool_connection) {
   }
 }
 
+async function pay_order(order_id, user_id, transaction_info, pool_connection) {
+  const client = await pool_connection.connect();
+  try {
+    const query_result = await client.query("SELECT * from orders WHERE order_id = $1", [order_id]);
+    if (query_result.rows.length === 0) {
+      //check auction table
+      return { status: 404, message: "Order not found" };
+    }
+
+    const get_order = query_result.rows[0];
+    if (get_order.user_winner_id != user_id) {
+      //check if the user is allowed to see this order
+      return { status: 401, message: "This order does not belong to you" };
+    }
+    const check_existing_transaction = await client.query("SELECT * from transactions WHERE order_id = $1", [order_id]);
+    if (check_existing_transaction.rows.length != 0) {
+      //if a transaction exists check it
+      const check_completed = check_existing_transaction.rows.find((transaction) => {
+        if (transaction.transaction_status == "completed" || transaction.transaction_status == "refunded" || transaction.transaction_status == "pending") {
+          return true;
+        }
+        return false;
+      });
+
+      if (check_completed) {
+        return { status: 400, message: "This order has already been completed or is pending" };
+      }
+    }
+    const { payment_details, shipping_address, billing_address } = transaction_info;
+
+    await client.query("BEGIN");
+    const insert_transaction = "INSERT INTO transactions (order_id, amount, transaction_type, payment_method, shipping_address, billing_address) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *";
+    await client.query(insert_transaction, [order_id, get_order.final_price, "payment", payment_details, shipping_address, billing_address]);
+    await client.query("COMMIT");
+    return { status: 200, message: "Payment completed" };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 async function verify_token(token) {
   //sends a request to auth_service
   try {
@@ -81,4 +124,4 @@ async function verify_token(token) {
   }
 }
 
-module.exports = { get_order_by_id, create_order, verify_token, get_all_orders };
+module.exports = { get_order_by_id, create_order, verify_token, get_all_orders, pay_order };

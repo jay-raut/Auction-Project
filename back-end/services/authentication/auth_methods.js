@@ -167,6 +167,32 @@ async function change_password(old_password, new_password, user, pool_connection
   }
 }
 
+async function get_payment_methods(user, pool_connection) {
+  const client = await pool_connection.connect();
+  try {
+    const get_payment_methods = await client.query("SELECT * FROM payment_methods WHERE user_id = $1", [user.user_id]);
+    console.log(get_payment_methods);
+    return { status: 200, message: "Got payments", payments: get_payment_methods.rows };
+  } catch (error) {
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+async function get_addresses(user, pool_connection) {
+  const client = await pool_connection.connect();
+  try {
+    const get_addresses = await client.query("SELECT * FROM addresses WHERE user_id = $1", [user.user_id]);
+    console.log(get_addresses);
+    return { status: 200, message: "Got addresses", addresses: get_addresses.rows };
+  } catch (error) {
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 async function verify(token) {
   //verifies a request using the token. If valid returns token content
   try {
@@ -183,4 +209,4 @@ function sign_token(token) {
   return jwt.sign(token, process.env.jwt_secret, { expiresIn: "5hr" });
 }
 
-module.exports = { create_user, login, verify, sign_token, change_password, change_username, create_address, create_payment_method };
+module.exports = { create_user, login, verify, sign_token, change_password, change_username, create_address, create_payment_method, get_payment_methods, get_addresses };

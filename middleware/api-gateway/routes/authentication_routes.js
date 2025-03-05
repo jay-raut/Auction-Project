@@ -51,4 +51,19 @@ router.post(
   })
 );
 
+router.get(
+  "/payment",
+  createProxyMiddleware({
+    target: `http://${process.env.auth_service_address}`,
+    changeOrigin: true,
+  })
+);
+
+router.get(
+  "/address",
+  createProxyMiddleware({
+    target: `http://${process.env.auth_service_address}`,
+    changeOrigin: true,
+  })
+);
 module.exports = router;

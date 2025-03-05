@@ -77,7 +77,46 @@ app.get("/get/:id", async (req, res) => {
 });
 
 app.post("/submit-payment/:id", async (req, res) => {
-  return res.status(200).json({ message: "order payment" });
+  const { token } = req.cookies;
+  if (!token) {
+    //check for token
+    return res.status(401).json({ messsage: "Missing session token" });
+  }
+ 
+  const requiredFields = {
+    payment_details: ["card_number", "name_on_card", "expiration_date"],
+    shipping_address: ["street_address", "street_number", "city", "zip_code", "country"],
+    billing_address: ["street_address", "street_number", "city", "zip_code", "country"],
+  };
+
+  const check_body_valid = Object.entries(requiredFields).every(([key, fields]) => {
+    return fields.every((field) => {
+      if (!req.body[key] || !req.body[key][field]) {
+        return false;
+      }
+      return true;
+    });
+  });
+
+
+  try {
+    const verify_result = await order_functions.verify_token(token);
+    if (verify_result.status != 200) {
+      return res.status(verify_result.status).messsage("Could not verify session. Log in again");
+    }
+    const order_id = req.params.id;
+    if (!order_id) {
+      return res.status(400).json({ message: "Missing order id" });
+    }
+    const payment_result = await order_functions.pay_order(order_id, verify_result.user.user_id, req.body, pool);
+    if (payment_result.status == 200) {
+      return res.status(200).json({ message: payment_result.message });
+    }
+    return res.status(payment_result.status).json({ message: payment_result.message });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ message: "Could not get order" });
+  }
 });
 
 const pool = new Pool({
@@ -88,23 +127,6 @@ const pool = new Pool({
   port: POSTGRES_PORT,
   database: POSTGRES_DATABASE,
 });
-
-const auction_details = {
-  event_type: "order.create",
-  user: "0a6a7b13-fe38-4a20-9bd7-1ce83168a94c",
-  winning_amount: 100,
-  auction: {
-    auction_id: "f9340afb-ba0f-4e69-b428-b4f1cf0faf1d",
-    start_time: "2025-03-04T05:57:21.240Z",
-    end_time: "2025-03-03T10:57:03.000Z",
-    is_active: "1",
-    auction_owner: "0a6a7b13-fe38-4a20-9bd7-1ce83168a94c",
-    auction_type: "forward_auction",
-    starting_amount: "10",
-    has_ended: "0",
-  },
-};
-
 
 const kafka = new Kafka({ clientId: `orders-service${server_port}`, brokers: [`${process.env.kafka_address}:${process.env.kafka_port}`] });
 const consumer = kafka.consumer({ groupId: "order-consumers" });
@@ -117,6 +139,7 @@ const run = async () => {
       try {
         if (data.event_type == "order.create") {
           console.log(data);
+          await order_functions.create_order(data, pool);
         }
       } catch (error) {
         console.log(error);
