@@ -1,12 +1,15 @@
 require("dotenv").config(); //environment variables
 const redis_auction_function = require("./redis_methods");
+const auction_event_functions = require("./auction_event_methods");
 
 const create_auction_redis = {
   dutch_auction: redis_auction_function.create_dutch_auction_redis,
   forward_auction: redis_auction_function.create_forward_auction_redis,
 };
 
-
+const auction_buy_now = {
+  dutch_auction: buy_now_dutch_auction,
+};
 
 async function create_base_auction(client, item_name, item_description, user, start_time, auction_type, starting_amount) {
   //use only within a transaction
@@ -185,6 +188,36 @@ async function get_auction_by_name(item_name, pool_connection) {
   }
 }
 
+async function buy_now(auction_id, user, pool_connection, redis_client, producer) {
+  const client = await pool_connection.connect();
+  try {
+    const auction_result = await client.query("SELECT * FROM auctions WHERE auction_id = $1", [auction_id]);
+    if (auction_result.rows.length === 0) {
+      //check auction table
+      return { status: 404, message: "Auction not found" };
+    }
+    const auction = auction_result.rows[0];
+    if (auction_buy_now[auction.auction_type] != null) {
+      const buy_now_response = await auction_buy_now[auction.auction_type](auction, user, pool_connection, redis_client, producer);
+      return buy_now_response;
+    }
+    return { status: 400, message: "This auction does not support buy now" };
+  } catch (error) {
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+async function buy_now_dutch_auction(auction, winning_user, pool_connection, redis_client, producer) {
+  if (false && auction.is_active != true) { //remove false 
+    return { status: 400, message: "This auction is not active" };
+  }
+  const stop_auction_details = { ...auction, winning_user: winning_user };
+  const stop_auction_status = await auction_event_functions.stop_auction(stop_auction_details, pool_connection, redis_client, producer);
+  return { status: stop_auction_status.status, message: stop_auction_status.message };
+}
+
 async function verify_token(token) {
   //sends a request to auth_service
   try {
@@ -208,4 +241,4 @@ async function verify_token(token) {
   }
 }
 
-module.exports = { create_dutch_auction, create_forward_auction, verify_token, get_auction_by_id, get_auction_by_name };
+module.exports = { create_dutch_auction, create_forward_auction, verify_token, get_auction_by_id, get_auction_by_name, buy_now };

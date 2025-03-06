@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-require("dotenv").config('../.env'); //environment variables
+require("dotenv").config("../.env"); //environment variables
 const { createProxyMiddleware } = require("http-proxy-middleware");
 
 router.get(
@@ -37,6 +37,14 @@ router.post(
 
 router.get(
   "/search/:query",
+  createProxyMiddleware({
+    target: `http://${process.env.auction_service_address}`,
+    changeOrigin: true,
+  })
+);
+
+router.post(
+  "/buy-now/:id",
   createProxyMiddleware({
     target: `http://${process.env.auction_service_address}`,
     changeOrigin: true,

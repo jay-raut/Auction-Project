@@ -22,8 +22,9 @@ async function start_auction(auction, pool_connection, redis_client) {
 }
 
 async function stop_auction(auction, pool_connection, redis_client, producer) {
+  //some auctions can be stopped syncronously or async aka some may return a object some may not
   if (stop_auction_types[auction.auction_type] != null) {
-    await stop_auction_types[auction.auction_type](auction, pool_connection, redis_client, producer);
+    return await stop_auction_types[auction.auction_type](auction, pool_connection, redis_client, producer);
   }
 }
 
@@ -47,6 +48,7 @@ async function stop_forward_auction(auction, pool_connection, redis_client, prod
     await redis_client.hSet(`auction:${auction.auction_id}`, "is_active", "0");
     await redis_client.hSet(`auction:${auction.auction_id}`, "has_ended", "1");
     await client.query("COMMIT");
+    
   } catch (error) {
     await client.query("ROLLBACK");
     console.log(error);
@@ -57,8 +59,30 @@ async function stop_forward_auction(auction, pool_connection, redis_client, prod
 
 async function stop_dutch_auction(auction, pool_connection, redis_client, producer) {
   //auction field must contain the winner since once someone buys then the auction will end immediate
-  console.log(`${JSON.stringify(auction)} stop`);
+  const client = await pool_connection.connect();
+  try {
+    const current_bid = await redis_client.zRangeWithScores(`bids:${auction.auction_id}`, 0, 0);
+    let final_price;
+    if (current_bid.length == 0) {
+      //the winning bid is the starting price
+      final_price = auction.starting_amount;
+    } else {
+      //otherwise the winning bid is the current smallest bid
+      final_price = current_bid[0].score;
+    }
+
+    await client.query("BEGIN");
+    await client.query("UPDATE auctions SET is_active = false WHERE auction_id = $1", [auction.auction_id]);
+    await client.query("COMMIT");
+    await redis_client.hSet(`auction:${auction.auction_id}`, "is_active", "0");
+    await redis_client.hSet(`auction:${auction.auction_id}`, "has_ended", "1");
+    return { status: 200, message: "dutch auction stopped" };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
-async function notify_order_create() {}
 module.exports = { start_auction, stop_auction };
