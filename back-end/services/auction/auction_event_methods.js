@@ -31,23 +31,24 @@ async function stop_auction(auction, pool_connection, redis_client, producer) {
 async function stop_forward_auction(auction, pool_connection, redis_client, producer) {
   //sets is_active in postgres to false, marks has_ended on redis, and creates a order async, the winner is the last bid if any
   const client = await pool_connection.connect();
+  console.log(auction);
   try {
     const highestBid = await redis_client.zRangeWithScores(`bids:${auction.auction_id}`, -1, -1);
     await client.query("BEGIN");
     if (highestBid.length != 0) {
       //there is a winner
-      const user = JSON.parse(highestBid[0].value).user;
+      user = JSON.parse(highestBid[0].value).user;
       const bid_amount = highestBid[0].score;
       await client.query("UPDATE auctions SET auction_winner = $1 WHERE auction_id = $2", [user, auction.auction_id]);
+      await producer.send({
+        topic: "order.create",
+        messages: [{ value: JSON.stringify({ event_type: "order.create", user: user, winning_amount: bid_amount, auction: auction }) }],
+      });
     }
     await client.query("UPDATE auctions SET is_active = false WHERE auction_id = $1", [auction.auction_id]);
     await redis_client.hSet(`auction:${auction.auction_id}`, "is_active", "0");
     await redis_client.hSet(`auction:${auction.auction_id}`, "has_ended", "1");
     await client.query("COMMIT");
-    await producer.send({
-      topic: "order.create",
-      messages: [{ value: JSON.stringify({ event_type: "order.create", user: user, winning_amount: bid_amount, auction: auction }) }],
-    });
   } catch (error) {
     await client.query("ROLLBACK");
     console.log(error);
