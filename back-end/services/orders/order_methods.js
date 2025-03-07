@@ -1,5 +1,8 @@
 require("dotenv").config(); //environment variables
-
+const max_order_retries = process.env.max_order_retries;
+if (!max_order_retries){
+  throw new Error("Cannot get max retries env variable");
+}
 async function create_order(auction_details, pool_connection) {
   const client = await pool_connection.connect();
   console.log(auction_details);
@@ -14,10 +17,24 @@ async function create_order(auction_details, pool_connection) {
     const query_result = await client.query(create_order_query, [auction_details.auction.auction_id, auction_details.user, auction_details.auction.auction_owner, auction_details.winning_amount]);
     await client.query("COMMIT");
   } catch (error) {
-    console.log(error);
     await client.query("ROLLBACK");
+    throw error;
   } finally {
     client.release();
+  }
+}
+
+
+async function process_order(auction_details, pool_connection, producer){ //processes an order and can retry if order creation fails
+  let retries = max_order_retries 
+  while (retries > 0){
+    try { //try to make the order
+      await create_order(auction_details, pool_connection);
+      return; //on success return 
+    } catch (error) { //retry if failed
+      console.log(error);
+      retries--;
+    }
   }
 }
 
@@ -123,4 +140,4 @@ async function verify_token(token) {
   }
 }
 
-module.exports = { get_order_by_id, create_order, verify_token, get_all_orders, pay_order };
+module.exports = { get_order_by_id, process_order, verify_token, get_all_orders, pay_order };
