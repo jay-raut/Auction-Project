@@ -39,16 +39,15 @@ async function stop_forward_auction(auction, pool_connection, redis_client, prod
       const user = JSON.parse(highestBid[0].value).user;
       const bid_amount = highestBid[0].score;
       await client.query("UPDATE auctions SET auction_winner = $1 WHERE auction_id = $2", [user, auction.auction_id]);
-      await producer.send({
-        topic: "order.create",
-        messages: [{ value: JSON.stringify({ event_type: "order.create", user: user, winning_amount: bid_amount, auction: auction }) }],
-      });
     }
     await client.query("UPDATE auctions SET is_active = false WHERE auction_id = $1", [auction.auction_id]);
     await redis_client.hSet(`auction:${auction.auction_id}`, "is_active", "0");
     await redis_client.hSet(`auction:${auction.auction_id}`, "has_ended", "1");
     await client.query("COMMIT");
-    
+    await producer.send({
+      topic: "order.create",
+      messages: [{ value: JSON.stringify({ event_type: "order.create", user: user, winning_amount: bid_amount, auction: auction }) }],
+    });
   } catch (error) {
     await client.query("ROLLBACK");
     console.log(error);
@@ -73,9 +72,14 @@ async function stop_dutch_auction(auction, pool_connection, redis_client, produc
 
     await client.query("BEGIN");
     await client.query("UPDATE auctions SET is_active = false WHERE auction_id = $1", [auction.auction_id]);
-    await client.query("COMMIT");
     await redis_client.hSet(`auction:${auction.auction_id}`, "is_active", "0");
     await redis_client.hSet(`auction:${auction.auction_id}`, "has_ended", "1");
+    await client.query("COMMIT");
+
+    await producer.send({
+      topic: "order.create",
+      messages: [{ value: JSON.stringify({ event_type: "order.create", user: auction.winning_user.user_id, winning_amount: final_price, auction: auction }) }],
+    });
     return { status: 200, message: "dutch auction stopped" };
   } catch (error) {
     await client.query("ROLLBACK");

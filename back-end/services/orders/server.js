@@ -138,7 +138,6 @@ const run = async () => {
       const data = JSON.parse(message.value.toString());
       try {
         if (data.event_type == "order.create") {
-          console.log(data);
           await order_functions.create_order(data, pool);
         }
       } catch (error) {
