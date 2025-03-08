@@ -10,6 +10,10 @@ const POSTGRES_PASSWORD = process.env.POSTGRES_PASSWORD;
 const POSTGRES_ADDRESS = process.env.POSTGRES_ADDRESS;
 const POSTGRES_PORT = process.env.POSTGRES_PORT;
 const POSTGRES_DATABASE = process.env.POSTGRES_DATABASE;
+const max_order_retries = process.env.max_order_retries;
+if (!max_order_retries) {
+  throw new Error("Cannot get max retries env variable");
+}
 
 const app = express();
 app.use(express.json());
@@ -151,12 +155,15 @@ const run = async () => {
           } else {
             //put the order back into order.create for another worker to handle
             console.log("could not create order");
-            await producer
-              .send({
-                topic: "order.create",
-                messages: [{ value: JSON.stringify({ event_type: "order.create", user: data.user, winning_amount: data.winning_amount, auction: data.auction }) }],
-              })
-              .catch((error) => console.log(error));
+            const retry_count = data.attempt ? data.attempt : 1;
+            if (retry_count < max_order_retries) {
+              await producer
+                .send({
+                  topic: "order.create",
+                  messages: [{ value: JSON.stringify({ event_type: "order.create", user: data.user, winning_amount: data.winning_amount, auction: data.auction, attempt: retry_count + 1 }) }],
+                })
+                .catch((error) => console.log(error));
+            }
           }
         }
       } catch (error) {
