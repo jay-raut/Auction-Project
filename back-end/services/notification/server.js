@@ -16,6 +16,7 @@ const auction_bid_consumer = kafka.consumer({
 });
 
 io.use(async (socket, next) => {
+  //middleware for socket auth using jwt
   const get_token = socket.handshake.auth.token;
   if (!get_token) {
     return next(new Error("Token is needed in handshake query"));
@@ -96,7 +97,17 @@ async function verify_token(token) {
   }
 }
 
+async function repeat_message() { //testing stub for removal 
+  while (true) {
+    await sleep(1000);
+    const get_user_socket_id = connected_users.get("087ebe20-f1d9-4c3f-abdd-aaa8f1b6835c");
+    io.to(get_user_socket_id).emit("auction.event", "some auction event");
+  }
+}
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 
 start_consumers();
