@@ -45,6 +45,10 @@ async function stop_forward_auction(auction, pool_connection, redis_client, prod
         messages: [{ value: JSON.stringify({ event_type: "order.create", user: user, winning_amount: bid_amount, auction: auction }) }],
       });
     }
+    await producer.send({
+      topic: "notification.auction.event",
+      messages: [{ value: JSON.stringify({ event_type: "auction.ended", auction: auction }) }],
+    });
     await client.query("UPDATE auctions SET is_active = false WHERE auction_id = $1", [auction.auction_id]);
     await redis_client.hSet(`auction:${auction.auction_id}`, "is_active", "0");
     await redis_client.hSet(`auction:${auction.auction_id}`, "has_ended", "1");
@@ -81,6 +85,10 @@ async function stop_dutch_auction(auction, pool_connection, redis_client, produc
     await producer.send({
       topic: "order.create",
       messages: [{ value: JSON.stringify({ event_type: "order.create", user: auction.winning_user.user_id, winning_amount: final_price, auction: auction }) }],
+    });
+    await producer.send({
+      topic: "notification.auction.event",
+      messages: [{ value: JSON.stringify({ event_type: "auction.ended", auction: auction }) }],
     });
     return { status: 200, message: "dutch auction stopped" };
   } catch (error) {

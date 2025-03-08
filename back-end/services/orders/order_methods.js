@@ -1,11 +1,10 @@
 require("dotenv").config(); //environment variables
 const max_order_retries = process.env.max_order_retries;
-if (!max_order_retries){
+if (!max_order_retries) {
   throw new Error("Cannot get max retries env variable");
 }
 async function create_order(auction_details, pool_connection) {
   const client = await pool_connection.connect();
-  console.log(auction_details);
   try {
     const check_existing_order = await client.query("SELECT * from orders WHERE auction_id = $1", [auction_details.auction.auction_id]);
     if (check_existing_order.rows.length > 0) {
@@ -16,6 +15,7 @@ async function create_order(auction_details, pool_connection) {
     const create_order_query = "INSERT INTO orders (auction_id, user_winner_id, user_seller_id,final_price) VALUES ($1, $2, $3, $4) RETURNING *";
     const query_result = await client.query(create_order_query, [auction_details.auction.auction_id, auction_details.user, auction_details.auction.auction_owner, auction_details.winning_amount]);
     await client.query("COMMIT");
+    return { order: query_result.rows[0] };
   } catch (error) {
     await client.query("ROLLBACK");
     throw error;
@@ -24,18 +24,21 @@ async function create_order(auction_details, pool_connection) {
   }
 }
 
-
-async function process_order(auction_details, pool_connection, producer){ //processes an order and can retry if order creation fails
-  let retries = max_order_retries 
-  while (retries > 0){
-    try { //try to make the order
-      await create_order(auction_details, pool_connection);
-      return; //on success return 
-    } catch (error) { //retry if failed
+async function process_order(auction_details, pool_connection) {
+  //processes an order and can retry if order creation fails
+  let retries = max_order_retries;
+  while (retries > 0) {
+    try {
+      //try to make the order
+      const order = await create_order(auction_details, pool_connection);
+      return { status: 200, order: order }; //on success return
+    } catch (error) {
+      //retry if failed
       console.log(error);
       retries--;
     }
   }
+  return { status: 400 };
 }
 
 async function get_order_by_id(order_id, user_id, pool_connection) {

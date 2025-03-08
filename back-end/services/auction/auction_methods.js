@@ -225,10 +225,6 @@ async function buy_now(auction_id, user, pool_connection, redis_client, producer
 }
 
 async function buy_now_dutch_auction(auction, winning_user, pool_connection, redis_client, producer) {
-  if (false && auction.is_active != true) {
-    //remove false
-    return { status: 400, message: "This auction is not active" };
-  }
   const stop_auction_details = { ...auction, winning_user: winning_user };
   const stop_auction_status = await auction_event_functions.stop_auction(stop_auction_details, pool_connection, redis_client, producer);
   return { status: stop_auction_status.status, message: stop_auction_status.message };

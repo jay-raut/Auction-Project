@@ -47,13 +47,25 @@ async function start_consumers() {
   await auction_event_consumer.connect();
   await auction_bid_consumer.connect();
 
-  await auction_event_consumer.subscribe({ topic: "notification.auction.event", fromBeginning: true }); //start at the beginning such that new instances can be synced
+  await auction_event_consumer.subscribe({ topic: "notification.auction.event", fromBeginning: false }); //start at the beginning such that new instances can be synced
   await auction_bid_consumer.subscribe({ topic: "notification.auction.bid", fromBeginning: false }); //do not start at the beginning
 
   auction_event_consumer.run({
     eachMessage: async ({ topic, partition, message }) => {
-      const get_event = JSON.parse(message.value.toString());
-      console.log(`${get_event} auction event`);
+      const data = JSON.parse(message.value.toString());
+      console.log(data);
+      if (data.event_type == "auction.ended") {
+        const ended_message = {
+          auction: data.auction,
+        };
+        io.to(data.auction.auction_id).emit("auction.ended", ended_message);
+      }
+      if (data.event_type == "order.ready") {
+        
+        const get_user_socket_id = connected_users.get(data.user);
+        console.log(get_user_socket_id);
+        io.to(get_user_socket_id).emit("order.ready", data.order);
+      }
     },
   });
 
@@ -97,7 +109,8 @@ async function verify_token(token) {
   }
 }
 
-async function repeat_message() { //testing stub for removal 
+async function repeat_message() {
+  //testing stub for removal
   while (true) {
     await sleep(1000);
     const get_user_socket_id = connected_users.get("087ebe20-f1d9-4c3f-abdd-aaa8f1b6835c");
@@ -108,6 +121,5 @@ async function repeat_message() { //testing stub for removal
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
-
 
 start_consumers();

@@ -82,7 +82,7 @@ app.post("/submit-payment/:id", async (req, res) => {
     //check for token
     return res.status(401).json({ messsage: "Missing session token" });
   }
- 
+
   const requiredFields = {
     payment_details: ["card_number", "name_on_card", "expiration_date"],
     shipping_address: ["street_address", "street_number", "city", "zip_code", "country"],
@@ -97,7 +97,6 @@ app.post("/submit-payment/:id", async (req, res) => {
       return true;
     });
   });
-
 
   try {
     const verify_result = await order_functions.verify_token(token);
@@ -130,15 +129,35 @@ const pool = new Pool({
 
 const kafka = new Kafka({ clientId: `orders-service${server_port}`, brokers: [`${process.env.kafka_address}:${process.env.kafka_port}`] });
 const consumer = kafka.consumer({ groupId: "order-consumers" });
+const producer = kafka.producer();
 const run = async () => {
   await consumer.connect();
+  await producer.connect();
   await consumer.subscribe({ topics: ["order.create"], fromBeginning: false });
   await consumer.run({
     eachMessage: async ({ partition, message }) => {
       const data = JSON.parse(message.value.toString());
+      console.log(data);
       try {
         if (data.event_type == "order.create") {
-          await order_functions.process_order(data, pool);
+          const order_creation_status = await order_functions.process_order(data, pool);
+          if (order_creation_status.status == 200) {
+            await producer
+              .send({
+                topic: "notification.auction.event",
+                messages: [{ value: JSON.stringify({ event_type: "order.ready", user: data.user, order: order_creation_status.order }) }],
+              })
+              .catch((error) => console.log(error));
+          } else {
+            //put the order back into order.create for another worker to handle
+            console.log("could not create order");
+            await producer
+              .send({
+                topic: "order.create",
+                messages: [{ value: JSON.stringify({ event_type: "order.create", user: data.user, winning_amount: data.winning_amount, auction: data.auction }) }],
+              })
+              .catch((error) => console.log(error));
+          }
         }
       } catch (error) {
         console.log(error);
