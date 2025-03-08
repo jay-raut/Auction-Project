@@ -2,6 +2,7 @@
   "name": "notification",
   "version": "1.0.0",
   "main": "server.js",
+  "type": "commonjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
@@ -11,6 +12,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "dotenv": "^16.4.7",
+    "kafkajs": "^2.2.4",
     "socket.io": "^4.8.1"
   }
 }

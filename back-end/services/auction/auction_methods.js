@@ -154,6 +154,18 @@ async function get_auction_by_id(id, pool_connection) {
   }
 }
 
+async function get_all_auctions(pool_connection) {
+  const client = await pool_connection.connect();
+  try {
+    const get_all = await client.query("SELECT * FROM auctions");
+    return { status: 200, auctions: get_all.rows };
+  } catch (error) {
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 async function get_auction_by_name(item_name, pool_connection) {
   const client = await pool_connection.connect();
   try {
@@ -196,6 +208,9 @@ async function buy_now(auction_id, user, pool_connection, redis_client, producer
       //check auction table
       return { status: 404, message: "Auction not found" };
     }
+    if (auction_result.rows[0].is_active == false) {
+      return { status: 400, message: "This auction is not active" };
+    }
     const auction = auction_result.rows[0];
     if (auction_buy_now[auction.auction_type] != null) {
       const buy_now_response = await auction_buy_now[auction.auction_type](auction, user, pool_connection, redis_client, producer);
@@ -210,7 +225,8 @@ async function buy_now(auction_id, user, pool_connection, redis_client, producer
 }
 
 async function buy_now_dutch_auction(auction, winning_user, pool_connection, redis_client, producer) {
-  if (false && auction.is_active != true) { //remove false 
+  if (false && auction.is_active != true) {
+    //remove false
     return { status: 400, message: "This auction is not active" };
   }
   const stop_auction_details = { ...auction, winning_user: winning_user };
@@ -241,4 +257,4 @@ async function verify_token(token) {
   }
 }
 
-module.exports = { create_dutch_auction, create_forward_auction, verify_token, get_auction_by_id, get_auction_by_name, buy_now };
+module.exports = { create_dutch_auction, create_forward_auction, verify_token, get_auction_by_id, get_auction_by_name, buy_now, get_all_auctions };

@@ -28,3 +28,5 @@ async function create_topic(topic, new_partition_count) {
 create_topic("auction.start", 4);
 create_topic("auction.stop", 4);
 create_topic("order.create", 4);
+create_topic("notification.auction.event", 4);
+create_topic("notification.auction.bid", 4);

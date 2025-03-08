@@ -36,8 +36,23 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get("/", async (req, res) => {
-  res.status(200).send({ route: "get all auctions" });
+app.get("/all", async (req, res) => {
+  try {
+    const get_auctions = await auction_functions.get_all_auctions(pool);
+    return res.status(200).json({ message: "Got all auctions", auctions: get_auctions.auctions });
+  } catch (error) {
+    return res.status(400).json({ messag: "Could not get all auctions" });
+  }
+});
+
+app.get("/all-active", async (req, res) => {
+  try {
+    const get_auctions = await auction_functions.get_all_auctions(pool);
+    const get_active_auctions = get_auctions.auctions.filter((auction) => auction.is_active == true);
+    return res.status(200).json({ message: "Got all active auctions", auctions: get_active_auctions });
+  } catch (error) {
+    return res.status(400).json({ messag: "Could not get active auctions" });
+  }
 });
 
 app.post("/create", async (req, res) => {
@@ -110,6 +125,12 @@ app.post("/bid/:id", async (req, res) => {
     }
     const bid_result = await auction_functions_redis.handle_bid(redis_client, auction_id, bid, verify_result.user);
     if (bid_result.status == 200) {
+      await producer
+        .send({
+          topic: "notification.auction.bid",
+          messages: [{ key: auction_id, value: JSON.stringify({ event_type: "notification.auction.bid", user: verify_result.user, bid: bid, auction_id: auction_id }) }],
+        })
+        .catch((error) => console.log(error));
       return res.status(200).json({ message: "bid successful" });
     }
     return res.status(bid_result.status).json({ message: bid_result.message });
@@ -200,7 +221,7 @@ const run = async () => {
   await consumer.subscribe({ topics: ["auction.start", "auction.stop"], fromBeginning: false });
 
   await consumer.run({
-    eachMessage: async ({ partition, message }) => {
+    eachMessage: async ({ message }) => {
       const data = JSON.parse(message.value.toString());
       try {
         if (data.event_type == "auction.start") {

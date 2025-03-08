@@ -4,12 +4,22 @@ require("dotenv").config("../.env"); //environment variables
 const { createProxyMiddleware } = require("http-proxy-middleware");
 
 router.get(
-  "/",
+  "/all",
   createProxyMiddleware({
     target: `http://${process.env.auction_service_address}`,
     changeOrigin: true,
   })
 );
+
+router.get(
+  "/all-active",
+  createProxyMiddleware({
+    target: `http://${process.env.auction_service_address}`,
+    changeOrigin: true,
+  })
+);
+
+
 //auth service checking needed still
 router.post(
   "/create",

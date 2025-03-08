@@ -73,6 +73,7 @@ async function stop_dutch_auction(auction, pool_connection, redis_client, produc
 
     await client.query("BEGIN");
     await client.query("UPDATE auctions SET is_active = false WHERE auction_id = $1", [auction.auction_id]);
+    await client.query("UPDATE auctions SET auction_winner = $1 WHERE auction_id = $2", [auction.winning_user.user_id, auction.auction_id]);
     await redis_client.hSet(`auction:${auction.auction_id}`, "is_active", "0");
     await redis_client.hSet(`auction:${auction.auction_id}`, "has_ended", "1");
     await client.query("COMMIT");
