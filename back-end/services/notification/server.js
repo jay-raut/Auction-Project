@@ -2,17 +2,18 @@ require("dotenv").config(); //environment variables
 const { Server } = require("socket.io");
 const { Kafka } = require("kafkajs");
 const server_port = process.env.server_port;
+console.log(`Notification service started on port ${server_port}`);
 const io = new Server(server_port, {
   path: "/api/notification/socket", // Explicitly set the Socket.IO path
 });
 
 const kafka = new Kafka({ clientId: `notification-service-${server_port}`, brokers: [`${process.env.kafka_address}:${process.env.kafka_port}`] });
 const auction_event_consumer = kafka.consumer({
-  groupId: "auction-event-consumers",
+  groupId: `auction-event-consumers-${server_port}`,
 });
 
 const auction_bid_consumer = kafka.consumer({
-  groupId: "auction-bid-consumers",
+  groupId: `auction-bid-consumers-${server_port}`,
 });
 
 io.use(async (socket, next) => {
@@ -61,7 +62,6 @@ async function start_consumers() {
         io.to(data.auction.auction_id).emit("auction.ended", ended_message);
       }
       if (data.event_type == "order.ready") {
-        
         const get_user_socket_id = connected_users.get(data.user);
         console.log(get_user_socket_id);
         io.to(get_user_socket_id).emit("order.ready", data.order);
