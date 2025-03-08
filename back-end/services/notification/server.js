@@ -15,13 +15,29 @@ const auction_bid_consumer = kafka.consumer({
   groupId: "auction-bid-consumers",
 });
 
+io.use(async (socket, next) => {
+  const get_token = socket.handshake.auth.token;
+  if (!get_token) {
+    return next(new Error("Token is needed in handshake query"));
+  }
+  const check_token = await verify_token(get_token);
+  if (check_token.status == 200) {
+    socket.user = check_token.user;
+    return next();
+  }
+  return next(new Error("Token could not be verified, login again"));
+});
+
+let connected_users = new Map();
 io.on("connection", (socket) => {
   console.log(`socket connected ${socket.id}`);
+  connected_users.set(socket.user.user_id, socket.id);
   socket.on("subscribe", (auction_id) => {
     socket.join(auction_id);
   });
 
   socket.on("disconnect", () => {
+    connected_users.delete(socket.user.user_id);
     console.log(`Client disconnected: ${socket.id}`);
   });
 });
@@ -56,5 +72,31 @@ async function start_consumers() {
     },
   });
 }
+
+async function verify_token(token) {
+  //sends a request to auth_service
+  try {
+    const verify = await fetch(`http://${process.env.auth_service_address}/verify`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        token: token,
+      }),
+    });
+    if (verify.status == 200) {
+      const get_body = await verify.json();
+      return { status: verify.status, user: get_body.user };
+    }
+    return { status: verify.status };
+  } catch (error) {
+    console.log(error);
+    return { status: 500, message: error };
+  }
+}
+
+
+
 
 start_consumers();
