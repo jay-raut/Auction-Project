@@ -172,7 +172,7 @@ async function get_payment_methods(user, pool_connection) {
   try {
     const get_payment_methods = await client.query("SELECT * FROM payment_methods WHERE user_id = $1", [user.user_id]);
     console.log(get_payment_methods);
-    return { status: 200, message: "Got payments", payments: get_payment_methods.rows };
+    return { status: 200, message: "Got user payments", payments: get_payment_methods.rows };
   } catch (error) {
     throw error;
   } finally {
