@@ -25,6 +25,9 @@ RUN npm install
 WORKDIR /app/authentication
 RUN npm install
 
+WORKDIR /app/jobs
+RUN npm install
+
 WORKDIR /app
 COPY . .
 
