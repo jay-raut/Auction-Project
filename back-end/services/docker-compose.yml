@@ -1,4 +1,3 @@
-
 services:
   auction-service:
     image: node
@@ -39,3 +38,11 @@ services:
     ports:
       - "4000:4000"
     command: ["sh", "-c", "npm install -g env-cmd nodemon && env-cmd -f /authentication/docker.env nodemon server.js"]
+
+  auction_event_job:
+    image: node
+    container_name: auction_event_job
+    working_dir: /jobs
+    volumes:
+      - ./jobs:/jobs
+    command: ["sh", "-c", "npm install -g env-cmd nodemon && env-cmd -f /jobs/.env nodemon auction_events.js"]

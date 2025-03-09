@@ -13,7 +13,7 @@ socket.on("connect_error", (err) => {
 });
 
 socket.on("connect", () => {
-  socket.emit("subscribe", "30202ec5-563e-4601-9591-03a9e96c1a8e");
+  socket.emit("subscribe", "657d7e9d-9e41-479b-b79e-7eeb6a79823a");
   console.log("Connected to server");
 });
 
