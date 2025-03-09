@@ -1,0 +1,41 @@
+
+services:
+  auction-service:
+    image: node
+    container_name: auction-service
+    working_dir: /auction
+    volumes:
+      - ./auction:/auction
+    ports:
+      - "6000:6000"
+    command: ["sh", "-c", "npm install -g env-cmd nodemon && env-cmd -f /auction/docker.env nodemon server.js"]
+
+  order-service:
+    image: node
+    container_name: order-service
+    working_dir: /orders
+    volumes:
+      - ./orders:/orders
+    ports:
+      - "9000:9000"
+    command: ["sh", "-c", "npm install -g env-cmd nodemon && env-cmd -f /orders/docker.env nodemon server.js"]
+
+  notification-service:
+    image: node
+    container_name: notification-service
+    working_dir: /notification
+    volumes:
+      - ./notification:/notification
+    ports:
+      - "8081:8081"
+    command: ["sh", "-c", "npm install -g env-cmd nodemon && env-cmd -f /notification/docker.env nodemon server.js"]
+
+  auth-service:
+    image: node
+    container_name: auth-service
+    working_dir: /authentication
+    volumes:
+      - ./authentication:/authentication
+    ports:
+      - "4000:4000"
+    command: ["sh", "-c", "npm install -g env-cmd nodemon && env-cmd -f /authentication/docker.env nodemon server.js"]

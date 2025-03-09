@@ -17,7 +17,7 @@ const POSTGRES_DATABASE = process.env.POSTGRES_DATABASE;
 
 const auction_types = require("./auction_types.json").auction_types;
 if (!Array.isArray(auction_types)) {
-  throw new Error("Auction types not array");
+  throw new Error("Auction types not an array");
 }
 
 const create_auction_handlers = {

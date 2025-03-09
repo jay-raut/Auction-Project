@@ -185,7 +185,7 @@ async function get_addresses(user, pool_connection) {
   try {
     const get_addresses = await client.query("SELECT * FROM addresses WHERE user_id = $1", [user.user_id]);
     console.log(get_addresses);
-    return { status: 200, message: "Got addresses", addresses: get_addresses.rows };
+    return { status: 200, message: "Got user addresses", addresses: get_addresses.rows };
   } catch (error) {
     throw error;
   } finally {
