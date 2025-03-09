@@ -29,7 +29,7 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
-  create-topics:
+  create-topics: #to confirm kafka configuration run command: docker exec -it kafka kafka-topics --bootstrap-server kafka:9092 --list  
     image: confluentinc/cp-kafka:latest
     depends_on:
       - kafka
