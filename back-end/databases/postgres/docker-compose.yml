@@ -1,19 +1,18 @@
-version: '3.8'
+version: "3.8"
 
 services:
   postgres:
-    image: postgres:15  
+    image: postgres:15
     container_name: auction_service_database
     restart: always
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: auction_database
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
+      - ./init-database:/docker-entrypoint-initdb.d
+      - ./schema:/schema
 volumes:
   postgres_data:
-    external: true

@@ -4,7 +4,7 @@ const socket = io("http://localhost:3000", {
   path: "/api/notification/socket",
   transports: ["websocket"],
   auth: {
-    token: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpheXJhdXQyMSIsInVzZXJfaWQiOiIwYTZhN2IxMy1mZTM4LTRhMjAtOWJkNy0xY2U4MzE2OGE5NGMiLCJmaXJzdF9uYW1lIjoiSmF5IiwibGFzdF9uYW1lIjoiUmF1dCIsImlhdCI6MTc0MTU1OTYzNSwiZXhwIjoxNzQxNTc3NjM1fQ.HqJo8uqDqy6bg7k4f15g3M3l0IwdFvhwoaornDzgH3A`,
+    token: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpheXJhdXQiLCJ1c2VyX2lkIjoiYmY2NTg0MTYtMjQ1Ny00MzFlLTlmODItY2VmZjZjNmM2NjdlIiwiZmlyc3RfbmFtZSI6ImpheSIsImxhc3RfbmFtZSI6InJhdXQiLCJpYXQiOjE3NDE1ODYwMDAsImV4cCI6MTc0MTYwNDAwMH0.uLJjNhKRvS-aEIpMHg4yGUeK0kEXis-XpBHjFe0xSvE`,
   },
 });
 
@@ -13,7 +13,7 @@ socket.on("connect_error", (err) => {
 });
 
 socket.on("connect", () => {
-  socket.emit("subscribe", "657d7e9d-9e41-479b-b79e-7eeb6a79823a");
+  socket.emit("subscribe", "995e6fe5-877a-4c30-9c02-30658c2eed3f");
   console.log("Connected to server");
 });
 

@@ -1,0 +1,11 @@
+CREATE DATABASE auctions;
+CREATE USER auctionservice WITH ENCRYPTED PASSWORD 'auctionservice';
+GRANT ALL PRIVILEGES ON DATABASE auctions TO auctionservice;
+
+CREATE DATABASE orders;
+CREATE USER orderservice WITH ENCRYPTED PASSWORD 'orderservice';
+GRANT ALL PRIVILEGES ON DATABASE orders TO orderservice;
+
+CREATE DATABASE users;
+CREATE USER authservice WITH ENCRYPTED PASSWORD 'authservice';
+GRANT ALL PRIVILEGES ON DATABASE users TO authservice;
