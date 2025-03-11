@@ -21,8 +21,16 @@ async function create_user(user, address, pool_connection) {
     const address_values = [user_query_result.rows[0].user_id, address.street_address, address.street_number, address.zip_code, address.city, address.country];
     await client.query("INSERT INTO addresses (user_id, street_address, street_number, zip_code, city, country) VALUES ($1, $2, $3, $4, $5, $6)", address_values);
     await client.query("COMMIT"); //end transaction
+    const token = {
+      //generate token
+      username: user_query_result.rows[0].username,
+      user_id: user_query_result.rows[0].user_id,
+      first_name: user_query_result.rows[0].first_name,
+      last_name: user_query_result.rows[0].last_name,
+    };
 
-    return { status: 200, message: "Created user successfully" };
+    const jwt_token = sign_token(token); //sign token
+    return { status: 200, message: "Created user successfully", token: jwt_token };
   } catch (error) {
     await client.query("ROLLBACK"); //rollback the commits on failure
     throw new Error(error);

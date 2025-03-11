@@ -1,41 +1,33 @@
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { Link, useNavigate } from "react-router-dom"
-import { toast } from "sonner"
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle } from "lucide-react"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is required"),
-})
+});
 
 const resetSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
-})
+});
 
-type LoginFormValues = z.infer<typeof loginSchema>
-type ResetFormValues = z.infer<typeof resetSchema>
+type LoginFormValues = z.infer<typeof loginSchema>;
+type ResetFormValues = z.infer<typeof resetSchema>;
 
 export default function Login() {
-  const [error, setError] = useState<string | null>(null)
-  const [resetSent, setResetSent] = useState(false)
-  const navigate = useNavigate()
+  const [error, setError] = useState<string | null>(null);
+  const [resetSent, setResetSent] = useState(false);
+  const navigate = useNavigate();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -43,35 +35,37 @@ export default function Login() {
       username: "",
       password: "",
     },
-  })
+  });
 
   const resetForm = useForm<ResetFormValues>({
     resolver: zodResolver(resetSchema),
     defaultValues: {
       email: "",
     },
-  })
+  });
 
   const onSubmit = async (data: LoginFormValues) => {
     try {
-      setError(null)
+      setError(null);
 
-      // In a real app, this would call your login API
-      console.log("Login data:", data)
+      console.log("Login data:", data);
 
-      // TODO: This should call your login API
       const login_status = await loginUser(data);
 
-      // Mock successful login
-      localStorage.setItem("isAuthenticated", "true")
-      toast.success("Successfully logged in")
-      navigate("/")
+      if (login_status.ok) {
+        localStorage.setItem("isAuthenticated", "true");
+        toast.success("Successfully logged in");
+        navigate("/");
+      } else {
+        console.log(`Could not login ${login_status}`);
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Invalid username or password")
+      setError(err instanceof Error ? err.message : "Invalid username or password");
     }
-  }
+  };
 
   async function loginUser(data: { username: any; password: any }) {
+    //stores the jwt token in browser's cookies
     const { username, password } = data;
     const response = await fetch("http://localhost:3000/api/authentication/login", {
       method: "POST",
@@ -85,13 +79,13 @@ export default function Login() {
   const onResetSubmit = async (data: ResetFormValues) => {
     try {
       // In a real app, this would call your password reset API
-      console.log("Reset password for:", data.email)
-      setResetSent(true)
-      toast.success("Password reset instructions sent to your email")
+      console.log("Reset password for:", data.email);
+      setResetSent(true);
+      toast.success("Password reset instructions sent to your email");
     } catch (err) {
-      toast.error("Failed to send reset instructions")
+      toast.error("Failed to send reset instructions");
     }
-  }
+  };
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center p-4">
@@ -140,17 +134,12 @@ export default function Login() {
                         <DialogContent>
                           <DialogHeader>
                             <DialogTitle>Reset your password</DialogTitle>
-                            <DialogDescription>
-                              Enter your email address and we'll send you instructions to reset your password.
-                            </DialogDescription>
+                            <DialogDescription>Enter your email address and we'll send you instructions to reset your password.</DialogDescription>
                           </DialogHeader>
                           {resetSent ? (
                             <div className="space-y-4 py-4">
                               <Alert className="bg-primary/10 border-primary/20">
-                                <AlertDescription>
-                                  If an account exists with that email, you'll receive password reset instructions
-                                  shortly.
-                                </AlertDescription>
+                                <AlertDescription>If an account exists with that email, you'll receive password reset instructions shortly.</AlertDescription>
                               </Alert>
                               <Button className="w-full" onClick={() => setResetSent(false)}>
                                 Back to login
@@ -206,6 +195,5 @@ export default function Login() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-

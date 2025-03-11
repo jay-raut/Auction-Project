@@ -1,17 +1,17 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { Link, useNavigate } from "react-router-dom"
-import { toast } from "sonner"
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle } from "lucide-react"
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 const signupSchema = z
   .object({
@@ -29,13 +29,13 @@ const signupSchema = z
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
     path: ["confirmPassword"],
-  })
+  });
 
-type SignupFormValues = z.infer<typeof signupSchema>
+type SignupFormValues = z.infer<typeof signupSchema>;
 
 export default function Signup() {
-  const [error, setError] = useState<string | null>(null)
-  const navigate = useNavigate()
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
@@ -51,21 +51,27 @@ export default function Signup() {
       country: "",
       postalCode: "",
     },
-  })
+  });
 
   const onSubmit = async (data: SignupFormValues) => {
     try {
-      setError(null)
+      setError(null);
       // In a real app, this would call your signup API
-      console.log("Signup data:", data)
+      console.log("Signup data:", data);
 
       // Mock successful signup
-      localStorage.setItem("isAuthenticated", "true")
-      toast.success("Account created successfully")
-      navigate("/")
+      localStorage.setItem("isAuthenticated", "true");
+      toast.success("Account created successfully");
+      navigate("/");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create account")
+      setError(err instanceof Error ? err.message : "Failed to create account");
     }
+  };
+
+  async function register(data: { username: any; password: any; confirmPassword: any; first_name: any; last_name: any; street_address: any; street_number: any; zip_code: any; city: any; country: any }) {
+
+
+    
   }
 
   return (
@@ -250,6 +256,5 @@ export default function Signup() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-

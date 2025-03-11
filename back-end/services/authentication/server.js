@@ -43,6 +43,13 @@ app.post("/register", async (req, res) => {
   };
   try {
     const create_user_status = await auth_functions.create_user(userData, addressData, pool);
+    if (create_user_status.status == 200) {
+      res.cookie("token", create_user_status.token, {
+        httpOnly: true,
+        sameSite: "strict",
+        maxAge: 5 * 60 * 60 * 1000,
+      });
+    }
     return res.status(create_user_status.status).json({ message: create_user_status.message });
   } catch (error) {
     console.log(error);
