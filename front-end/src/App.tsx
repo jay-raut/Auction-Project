@@ -1,21 +1,20 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import Login from './pages/Login'
-
-import { Button } from "@/components/ui/button"
+import Layout from "./components/Layout"
+import { Toaster } from 'sonner'
 
 function App() {
   return (
     <>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Login />} />
+          <Route path="/" element={<Layout />}>
+            <Route path="/login" element={<Login />} />
+          </Route>
         </Routes>
       </BrowserRouter>
-      <div className="flex flex-col items-center justify-center min-h-svh">
-        <Button>Click me</Button>
-      </div>
+      <Toaster position='top-right' />
     </>
-    
   )
 }
 
