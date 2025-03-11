@@ -1,9 +1,11 @@
 "use client"
 
+import { useState } from "react"
 import { Link } from "react-router-dom"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Clock } from "lucide-react"
 
 // Mock data for auction items
@@ -15,6 +17,7 @@ const auctionItems = [
     currentPrice: 5250,
     type: "forward",
     remainingTime: "2h 15m",
+    is_active: true,
     image: "/placeholder.svg?height=200&width=300",
   },
   {
@@ -24,6 +27,7 @@ const auctionItems = [
     currentPrice: 1200,
     type: "forward",
     remainingTime: "4h 30m",
+    is_active: true,
     image: "/placeholder.svg?height=200&width=300",
   },
   {
@@ -32,6 +36,7 @@ const auctionItems = [
     description: "19th century mahogany writing desk",
     currentPrice: 3500,
     type: "dutch",
+    is_active: true,
     image: "/placeholder.svg?height=200&width=300",
   },
   {
@@ -40,6 +45,7 @@ const auctionItems = [
     description: "Original canvas by contemporary artist",
     currentPrice: 2800,
     type: "dutch",
+    is_active: true,
     image: "/placeholder.svg?height=200&width=300",
   },
   {
@@ -49,6 +55,7 @@ const auctionItems = [
     currentPrice: 950,
     type: "forward",
     remainingTime: "1d 3h",
+    is_active: true,
     image: "/placeholder.svg?height=200&width=300",
   },
   {
@@ -57,6 +64,7 @@ const auctionItems = [
     description: "Premium full-grain leather sofa",
     currentPrice: 4200,
     type: "dutch",
+    is_active: true,
     image: "/placeholder.svg?height=200&width=300",
   },
   {
@@ -66,6 +74,7 @@ const auctionItems = [
     currentPrice: 750,
     type: "forward",
     remainingTime: "5h 45m",
+    is_active: true,
     image: "/placeholder.svg?height=200&width=300",
   },
   {
@@ -74,11 +83,51 @@ const auctionItems = [
     description: "High-end gaming computer with accessories",
     currentPrice: 1800,
     type: "dutch",
+    is_active: true,
+    image: "/placeholder.svg?height=200&width=300",
+  },
+  {
+    id: 9,
+    name: "Classic Car",
+    description: "This classic car auction has ended.",
+    currentPrice: 15000,
+    type: "forward",
+    is_active: false,
+    remainingTime: "",
+    image: "/placeholder.svg?height=200&width=300",
+  },
+  {
+    id: 10,
+    name: "Luxury Watch",
+    description: "Luxury watch auction that is no longer active.",
+    currentPrice: 8000,
+    type: "forward",
+    is_active: false,
+    remainingTime: "",
     image: "/placeholder.svg?height=200&width=300",
   },
 ]
 
 export default function Catalogue() {
+  const [activeTab, setActiveTab] = useState("all")
+
+  const filteredItems = auctionItems.filter((item) => {
+
+    if (activeTab === "all") {
+      return true
+    }
+
+    else if (activeTab === "active") {
+      return item.is_active === true
+    }
+
+    else if (activeTab === "past") {
+      return item.is_active === false
+    }
+
+    return item.type === activeTab
+  })
+
   return (
     <div className="container py-10">
       <div className="flex flex-col gap-6">
@@ -87,8 +136,20 @@ export default function Catalogue() {
           <p className="text-muted-foreground">Browse and bid on unique items from around the world</p>
         </div>
 
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <Tabs defaultValue="all" className="w-full sm:w-auto" onValueChange={setActiveTab}>
+              <TabsList>
+                <TabsTrigger value="all">All Auctions</TabsTrigger>
+                <TabsTrigger value="active">Active</TabsTrigger>
+                <TabsTrigger value="past">Past</TabsTrigger>
+                <TabsTrigger value="forward">Forward</TabsTrigger>
+                <TabsTrigger value="dutch">Dutch</TabsTrigger>
+              </TabsList>
+          </Tabs>
+        </div>
+
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {auctionItems.map((item) => (
+            {filteredItems.map((item) => (
               <Card key={item.id} className="overflow-hidden">
                 <div className="aspect-[3/2] relative">
                   <img src={item.image || "/placeholder.svg"} alt={item.name} className="object-cover w-full h-full" />
