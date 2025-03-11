@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import Login from './pages/Login'
+import Landing from './pages/Landing'
 import Layout from "./components/Layout"
 import { Toaster } from 'sonner'
 
@@ -9,6 +10,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Layout />}>
+            <Route index element={<Landing />} />
             <Route path="/login" element={<Login />} />
           </Route>
         </Routes>
