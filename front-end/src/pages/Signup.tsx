@@ -58,20 +58,46 @@ export default function Signup() {
       setError(null);
       // In a real app, this would call your signup API
       console.log("Signup data:", data);
-
-      // Mock successful signup
-      localStorage.setItem("isAuthenticated", "true");
-      toast.success("Account created successfully");
-      navigate("/");
+      if (data.password !== data.confirmPassword) {
+        setError("Passwords must match");
+        return;
+      }
+      const formattedData = {
+        username: data.username,
+        password: data.password,
+        first_name: data.firstName,
+        last_name: data.lastName, 
+        street_address: data.streetName, 
+        street_number: data.streetNumber,
+        city: data.city,
+        country: data.country,
+        zip_code: data.postalCode,
+      };
+      const sign_up_status = await register(formattedData);
+      if (sign_up_status.ok) {
+        // Mock successful signup
+        localStorage.setItem("isAuthenticated", "true");
+        toast.success("Account created successfully");
+        navigate("/");
+      } else {
+        const errorData = await sign_up_status.json();
+        setError(errorData.error || "Signup failed");
+        console.log(`Could not sign up:`, errorData);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create account");
     }
   };
 
-  async function register(data: { username: any; password: any; confirmPassword: any; first_name: any; last_name: any; street_address: any; street_number: any; zip_code: any; city: any; country: any }) {
-
-
-    
+  async function register(data: { username: any; password: any; first_name: any; last_name: any; street_address: any; street_number: any; zip_code: any; city: any; country: any }) {
+    console.log(data);
+    const response = await fetch("http://localhost:3000/api/authentication/register", {
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
+    return response;
   }
 
   return (

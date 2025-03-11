@@ -57,7 +57,7 @@ export default function Login() {
         toast.success("Successfully logged in");
         navigate("/");
       } else {
-        console.log(`Could not login ${login_status}`);
+        console.log(`Could not login ${await login_status.json()}`);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Invalid username or password");
