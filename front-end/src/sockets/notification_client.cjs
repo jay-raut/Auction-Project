@@ -4,7 +4,7 @@ const socket = io("http://localhost:3000", {
   path: "/api/notification/socket",
   transports: ["websocket"],
   auth: {
-    token: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpheXJhdXQiLCJ1c2VyX2lkIjoiYmY2NTg0MTYtMjQ1Ny00MzFlLTlmODItY2VmZjZjNmM2NjdlIiwiZmlyc3RfbmFtZSI6ImpheSIsImxhc3RfbmFtZSI6InJhdXQiLCJpYXQiOjE3NDE1ODYwMDAsImV4cCI6MTc0MTYwNDAwMH0.uLJjNhKRvS-aEIpMHg4yGUeK0kEXis-XpBHjFe0xSvE`,
+    token: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpheXJhdXQiLCJ1c2VyX2lkIjoiZDFkYzhhZmEtYmI4MS00ZDcyLTg1NDEtOGU2MzNmZTA5ODMwIiwiZmlyc3RfbmFtZSI6ImpheSIsImxhc3RfbmFtZSI6InJhdXQiLCJpYXQiOjE3NDE2MzQ5MjgsImV4cCI6MTc0MTY1MjkyOH0.mcv6-Dwnlysg0dIm-1JmUB-8Lj4ZM4RcWPsgQ3tDElA`,
   },
 });
 
@@ -13,7 +13,7 @@ socket.on("connect_error", (err) => {
 });
 
 socket.on("connect", () => {
-  socket.emit("subscribe", "995e6fe5-877a-4c30-9c02-30658c2eed3f");
+  socket.emit("subscribe", "72d607eb-e5bc-498b-9481-b50bbf197ebd");
   console.log("Connected to server");
 });
 
@@ -24,8 +24,7 @@ socket.on("auction.bid", (bid) => {
 socket.on("auction.ended", (event) => {
   console.log(event);
 });
-
-
+``
 
 socket.on("order.ready", (event) => {
   console.log(event);

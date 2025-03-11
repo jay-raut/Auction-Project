@@ -1,0 +1,10 @@
+services:
+  api-gateway:
+    image: node
+    container_name: api-gateway
+    working_dir: /api-gateway
+    volumes:
+      - ./:/api-gateway
+    ports:
+      - "3000:3000"
+    command: ["sh", "-c", "npm install -g env-cmd nodemon && env-cmd -f docker.env nodemon server.js"]
