@@ -1,33 +1,75 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { Link, useNavigate } from "react-router-dom"
+import { toast } from "sonner"
+import { z } from "zod"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AlertCircle } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+
+const loginSchema = z.object({
+  username: z.string().min(1, "Username is required"),
+  password: z.string().min(1, "Password is required"),
+})
+
+const resetSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+})
+
+type LoginFormValues = z.infer<typeof loginSchema>
+type ResetFormValues = z.infer<typeof resetSchema>
 
 export default function Login() {
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null)
+  const [resetSent, setResetSent] = useState(false)
+  const navigate = useNavigate()
 
-  const form = useForm({
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       username: "",
       password: "",
     },
-  });
+  })
 
-  const onSubmit = async (data: { username: string; password: string }) => {
+  const resetForm = useForm<ResetFormValues>({
+    resolver: zodResolver(resetSchema),
+    defaultValues: {
+      email: "",
+    },
+  })
+
+  const onSubmit = async (data: LoginFormValues) => {
     try {
-      setError(null);
+      setError(null)
+
+      // In a real app, this would call your login API
+      console.log("Login data:", data)
+
+      // TODO: This should call your login API
       const login_status = await loginUser(data);
 
-      toast("User successfully logged in");
+      // Mock successful login
+      localStorage.setItem("isAuthenticated", "true")
+      toast.success("Successfully logged in")
+      navigate("/")
     } catch (err) {
-      setError(err instanceof Error ? err.message : "User failed to login");
+      setError(err instanceof Error ? err.message : "Invalid username or password")
     }
-  };
+  }
 
   async function loginUser(data: { username: any; password: any }) {
     const { username, password } = data;
@@ -40,11 +82,23 @@ export default function Login() {
     return response;
   }
 
+  const onResetSubmit = async (data: ResetFormValues) => {
+    try {
+      // In a real app, this would call your password reset API
+      console.log("Reset password for:", data.email)
+      setResetSent(true)
+      toast.success("Password reset instructions sent to your email")
+    } catch (err) {
+      toast.error("Failed to send reset instructions")
+    }
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-background/80 p-4">
-      <Card className="w-full max-w-md border-primary/10 shadow-lg backdrop-blur-sm">
+    <div className="min-h-[80vh] flex items-center justify-center p-4">
+      <Card className="w-full max-w-md border-primary/10 shadow-lg">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center tracking-tight">Welcome Back</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
+          <CardDescription className="text-center">Enter your credentials to access your account</CardDescription>
         </CardHeader>
         <CardContent>
           {error && (
@@ -61,9 +115,9 @@ export default function Login() {
                 name="username"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-foreground/70">Username</FormLabel>
+                    <FormLabel>Username</FormLabel>
                     <FormControl>
-                      <Input {...field} type="text" className="bg-background/50 border-primary/10 transition-colors hover:border-primary/30 focus:border-primary" placeholder="Enter your username" />
+                      <Input {...field} type="text" placeholder="Enter your username" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -75,27 +129,83 @@ export default function Login() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-foreground/70">Password</FormLabel>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Password</FormLabel>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="link" className="p-0 h-auto font-normal text-xs">
+                            Forgot password?
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Reset your password</DialogTitle>
+                            <DialogDescription>
+                              Enter your email address and we'll send you instructions to reset your password.
+                            </DialogDescription>
+                          </DialogHeader>
+                          {resetSent ? (
+                            <div className="space-y-4 py-4">
+                              <Alert className="bg-primary/10 border-primary/20">
+                                <AlertDescription>
+                                  If an account exists with that email, you'll receive password reset instructions
+                                  shortly.
+                                </AlertDescription>
+                              </Alert>
+                              <Button className="w-full" onClick={() => setResetSent(false)}>
+                                Back to login
+                              </Button>
+                            </div>
+                          ) : (
+                            <Form {...resetForm}>
+                              <form onSubmit={resetForm.handleSubmit(onResetSubmit)} className="space-y-4">
+                                <FormField
+                                  control={resetForm.control}
+                                  name="email"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Email</FormLabel>
+                                      <FormControl>
+                                        <Input {...field} type="email" placeholder="Enter your email" />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <DialogFooter>
+                                  <Button type="submit" className="w-full">
+                                    Send reset instructions
+                                  </Button>
+                                </DialogFooter>
+                              </form>
+                            </Form>
+                          )}
+                        </DialogContent>
+                      </Dialog>
+                    </div>
                     <FormControl>
-                      <Input
-                        {...field}
-                        type="password"
-                        className="bg-background/50 border-primary/10 transition-colors hover:border-primary/30 focus:border-primary"
-                        placeholder="Enter your password"
-                      />
+                      <Input {...field} type="password" placeholder="Enter your password" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <Button type="submit" className="w-full bg-primary/90 hover:bg-primary transition-colors" disabled={form.formState.isSubmitting}>
+              <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
                 {form.formState.isSubmitting ? "Signing in..." : "Sign in"}
               </Button>
             </form>
           </Form>
+
+          <div className="mt-6 text-center text-sm">
+            Don't have an account?{" "}
+            <Link to="/signup" className="font-medium text-primary hover:underline">
+              Sign up
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }
+
