@@ -26,7 +26,7 @@ export default function Layout() {
           </Link>
 
           <div className="flex items-center gap-4">
-            <Link to="/">
+            <Link to="/catalogue">
               <Button variant="ghost">
                 <ShoppingBag className="h-5 w-5 mr-2" />
                 Auctions

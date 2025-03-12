@@ -5,6 +5,7 @@ import Landing from './pages/Landing'
 import Layout from "./components/Layout"
 import Signup from "./pages/Signup"
 import Catalogue from './pages/Catalogue'
+import Forward from './pages/Forward'
 import { Toaster } from 'sonner'
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
             <Route path="/signup" element={<Signup />} />
             <Route path="/landing" element={<Landing />} />
             <Route path="/catalogue" element={<Catalogue />} />
+            <Route path="/forward/:id" element={<Forward />} />
           </Route>
         </Routes>
       </BrowserRouter>
