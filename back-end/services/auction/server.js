@@ -38,7 +38,7 @@ app.use((req, res, next) => {
 
 app.get("/all", async (req, res) => {
   try {
-    const get_auctions = await auction_functions.get_all_auctions(pool);
+    const get_auctions = await auction_functions.get_all_auctions(pool, redis_client);
     return res.status(200).json({ message: "Got all auctions", auctions: get_auctions.auctions });
   } catch (error) {
     return res.status(400).json({ messag: "Could not get all auctions" });
@@ -47,7 +47,7 @@ app.get("/all", async (req, res) => {
 
 app.get("/all-active", async (req, res) => {
   try {
-    const get_auctions = await auction_functions.get_all_auctions(pool);
+    const get_auctions = await auction_functions.get_all_auctions(pool, redis_client);
     const get_active_auctions = get_auctions.auctions.filter((auction) => auction.is_active == true);
     return res.status(200).json({ message: "Got all active auctions", auctions: get_active_auctions });
   } catch (error) {
@@ -94,7 +94,7 @@ app.get("/:id", async (req, res) => {
     return res.status(400).json({ messsage: "Missing auction id" });
   }
   try {
-    const find_auction_result = await auction_functions.get_auction_by_id(param_id, pool);
+    const find_auction_result = await auction_functions.get_auction_by_id(param_id, pool, redis_client);
     if (find_auction_result.status == 200) {
       return res.status(200).json({ message: find_auction_result.message, auction: find_auction_result.auction });
     }

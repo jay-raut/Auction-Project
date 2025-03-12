@@ -119,7 +119,7 @@ async function create_forward_auction(redis_client, pool_connection, auction_inf
   }
 }
 
-async function get_auction_by_id(id, pool_connection) {
+async function get_auction_by_id(id, pool_connection, redis_client) {
   const client = await pool_connection.connect();
   try {
     const auction_result = await client.query("SELECT * FROM auctions WHERE auction_id = $1", [id]);
@@ -138,6 +138,10 @@ async function get_auction_by_id(id, pool_connection) {
       return { status: 400, message: "Missing auction type" };
     }
     //one to one relationship between 'auctions' table and dutch/forward auction
+    const get_current_bid = await redis_auction_function.get_current_bid(id, redis_client);
+    if (get_current_bid.status == 200) {
+      auction_data.current_bid = get_current_bid.current_bid;
+    }
     auction_data = { ...auction_data, ...query_result.rows[0] };
 
     return {
@@ -152,13 +156,19 @@ async function get_auction_by_id(id, pool_connection) {
   }
 }
 
-async function get_all_auctions(pool_connection) {
+async function get_all_auctions(pool_connection, redis_client) {
   const client = await pool_connection.connect();
   try {
     const get_all = await client.query("SELECT * FROM auctions");
     const join_types = await Promise.all(
       get_all.rows.map(async (auction) => {
         let query = await client.query(`SELECT * FROM ${auction.auction_type} WHERE auction_id = $1`, [auction.auction_id]);
+        if (auction.is_active) {
+          const get_current_bid = await redis_auction_function.get_current_bid(auction.auction_id, redis_client);
+          if (get_current_bid.status == 200) {
+            auction.current_bid = get_current_bid.current_bid;
+          }
+        }
         return Object.assign({}, auction, query.rows[0]);
       })
     );

@@ -18,7 +18,7 @@ async function create_dutch_auction_redis(redis_client, auction_details, start_t
     auction_owner: auction_details.auction_owner,
     auction_type: "dutch_auction",
     starting_amount: auction_details.starting_amount,
-    has_ended: 0
+    has_ended: 0,
   });
   return { status: 200, message: "created auction in redis" };
 }
@@ -39,7 +39,7 @@ async function create_forward_auction_redis(redis_client, auction_details, start
     auction_owner: auction_details.auction_owner,
     auction_type: "forward_auction",
     starting_amount: auction_details.starting_amount,
-    has_ended: 0
+    has_ended: 0,
   });
   return { status: 200, message: "created auction in redis" };
 }
@@ -111,6 +111,33 @@ async function bid_forward(redis_client, auction_id, bid_amount, user) {
   return { status: 200, message: `Bid placed: ${bid_amount}` };
 }
 
+async function get_current_bid(auction_id, redis_client) {
+  if (!redis_client) {
+    return { status: 400, message: "redis_client not initalized" };
+  }
+  const auction_key = `auction:${auction_id}`;
+  const auction = await redis_client.hGetAll(auction_key);
+  if (Object.keys(auction).length == 0) {
+    return { status: 404, message: "Auction not found in redis" };
+  }
+  if (auction.is_active != true) {
+    return { status: 400, message: "This auction is not active" };
+  }
+  const bids_key = `bids:${auction_id}`;
+  let current_bid;
+  if (auction.auction_type == "forward_auction") {
+    current_bid = await redis_client.zRangeWithScores(bids_key, -1, -1);
+  } else {
+    current_bid = await redis_client.zRangeWithScores(bids_key, 0, 0);
+  }
+
+  if (!current_bid.length) {
+    return { status: 200, current_bid: Number(auction.starting_amount) };
+  }
+
+  return { status: 200, current_bid: Number(current_bid[0].score) };
+}
+
 async function set_is_active(auction_id, redis_client) {
   const auction_key = `auction:${auction_id}`;
 
@@ -124,4 +151,4 @@ async function set_is_active(auction_id, redis_client) {
   console.log(`Auction ${auction_id} is now active.`);
 }
 
-module.exports = { create_dutch_auction_redis, create_forward_auction_redis, handle_bid, set_is_active };
+module.exports = { create_dutch_auction_redis, create_forward_auction_redis, handle_bid, set_is_active, get_current_bid };
