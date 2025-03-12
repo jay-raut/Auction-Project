@@ -20,7 +20,7 @@ export default function Layout() {
     <div className="min-h-screen flex flex-col">
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 font-bold text-xl">
+          <Link to="/landing" className="flex items-center gap-2 font-bold text-xl">
             <Gavel className="h-6 w-6" />
             <span>AuctionHub</span>
           </Link>

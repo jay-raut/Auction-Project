@@ -28,6 +28,7 @@ function App() {
             <Route index element={isAuthenticated ? <Catalogue /> : <Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/landing" element={<Landing />} />
             <Route path="/catalogue" element={<Catalogue />} />
           </Route>
         </Routes>
