@@ -4,9 +4,10 @@ import { useState } from "react"
 import { Link } from "react-router-dom"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Clock } from "lucide-react"
+import { Clock, Search } from "lucide-react"
 
 // Mock data for auction items
 const auctionItems = [
@@ -64,7 +65,7 @@ const auctionItems = [
     description: "Premium full-grain leather sofa",
     currentPrice: 4200,
     type: "dutch",
-    is_active: true,
+    is_active: false,
     image: "/placeholder.svg?height=200&width=300",
   },
   {
@@ -109,23 +110,25 @@ const auctionItems = [
 ]
 
 export default function Catalogue() {
+  const [searchTerm, setSearchTerm] = useState("")
   const [activeTab, setActiveTab] = useState("all")
 
   const filteredItems = auctionItems.filter((item) => {
+    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase())
 
     if (activeTab === "all") {
-      return true
+      return matchesSearch
     }
 
     else if (activeTab === "active") {
-      return item.is_active === true
+      return matchesSearch && item.is_active === true
     }
 
     else if (activeTab === "past") {
-      return item.is_active === false
+      return matchesSearch && item.is_active === false
     }
 
-    return item.type === activeTab
+    return matchesSearch && item.type === activeTab
   })
 
   return (
@@ -137,6 +140,16 @@ export default function Catalogue() {
         </div>
 
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative w-full max-w-sm">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search items..."
+                  className="w-full pl-8"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+          </div>
           <Tabs defaultValue="all" className="w-full sm:w-auto" onValueChange={setActiveTab}>
               <TabsList>
                 <TabsTrigger value="all">All Auctions</TabsTrigger>
@@ -148,39 +161,46 @@ export default function Catalogue() {
           </Tabs>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filteredItems.map((item) => (
-              <Card key={item.id} className="overflow-hidden">
-                <div className="aspect-[3/2] relative">
-                  <img src={item.image || "/placeholder.svg"} alt={item.name} className="object-cover w-full h-full" />
-                  <Badge className="absolute top-2 right-2" variant={item.type === "forward" ? "default" : "secondary"}>
-                    {item.type === "forward" ? "Forward Auction" : "Dutch Auction"}
-                  </Badge>
-                </div>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold text-lg truncate">{item.name}</h3>
-                  <p className="text-sm text-muted-foreground line-clamp-2 h-10">{item.description}</p>
-                  <div className="mt-2 flex justify-between items-center">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Current bid</p>
-                      <p className="font-semibold">${item.currentPrice.toLocaleString()}</p>
-                    </div>
-                    {item.type === "forward" && (
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <Clock className="h-3.5 w-3.5 mr-1" />
-                        {item.remainingTime}
-                      </div>
-                    )}
+        {filteredItems.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <p className="text-lg font-medium">No items found</p>
+              <p className="text-muted-foreground">Try adjusting your search or filters</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {filteredItems.map((item) => (
+                <Card key={item.id} className="overflow-hidden">
+                  <div className="aspect-[3/2] relative">
+                    <img src={item.image || "/placeholder.svg"} alt={item.name} className="object-cover w-full h-full" />
+                    <Badge className="absolute top-2 right-2" variant={item.type === "forward" ? "default" : "secondary"}>
+                      {item.type === "forward" ? "Forward Auction" : "Dutch Auction"}
+                    </Badge>
                   </div>
-                </CardContent>
-                <CardFooter className="p-4 pt-0">
-                  <Link to={item.type === "forward" ? `/forward/${item.id}` : `/dutch/${item.id}`} className="w-full">
-                    <Button className="w-full">{item.type === "forward" ? "Place Bid" : "View Auction"}</Button>
-                  </Link>
-                </CardFooter>
-              </Card>
-            ))}
-        </div>
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold text-lg truncate">{item.name}</h3>
+                    <p className="text-sm text-muted-foreground line-clamp-2 h-10">{item.description}</p>
+                    <div className="mt-2 flex justify-between items-center">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Current bid</p>
+                        <p className="font-semibold">${item.currentPrice.toLocaleString()}</p>
+                      </div>
+                      {item.type === "forward" && (
+                        <div className="flex items-center text-sm text-muted-foreground">
+                          <Clock className="h-3.5 w-3.5 mr-1" />
+                          {item.remainingTime}
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                  <CardFooter className="p-4 pt-0">
+                    <Link to={item.type === "forward" ? `/forward/${item.id}` : `/dutch/${item.id}`} className="w-full">
+                      <Button className="w-full">{item.type === "forward" ? "Place Bid" : "View Auction"}</Button>
+                    </Link>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          )}
       </div>
     </div>
   )
