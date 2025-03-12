@@ -60,6 +60,7 @@ async function start_consumers() {
           auction: data.auction,
         };
         io.to(data.auction.auction_id).emit("auction.ended", ended_message);
+        io.to("all").emit("auction.ended", ended_message);
       }
       if (data.event_type == "order.ready") {
         const get_user_socket_id = connected_users.get(data.user);
@@ -82,6 +83,7 @@ async function start_consumers() {
         auction_id: data.auction_id,
       };
       io.to(data.auction_id).emit("auction.bid", bid_message);
+      io.to("all").emit("auction.bid", bid_message);
     },
   });
 }
