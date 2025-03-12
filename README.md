@@ -34,7 +34,7 @@ Use docker compose to start redis
 ```
 
 ## Starting Kafka message queue
-Assuming current directory is Auction-Project/back-end
+Assuming current directory is /Auction-Project/back-end
 
 ```bash
   cd services/kafka
@@ -45,7 +45,7 @@ Use docker compose to start kafka
 ```
 
 ## Starting services
-Assuming current directory is Auction-Project/back-end
+Assuming current directory is /Auction-Project/back-end
 
 ```bash
   cd services
@@ -53,4 +53,27 @@ Assuming current directory is Auction-Project/back-end
 Use docker compose to start all services
 ```bash
   docker compose up --build
+```
+
+
+## Starting middleware API-Gateway
+Assuming current directory is /Auction-Project
+
+```bash
+  cd middleware/api-gateway
+```
+Use docker compose to start the api-gateway
+```bash
+  docker compose up --build
+```
+
+## Starting front-end
+Assuming current directory is /Auction-Project
+
+```bash
+  cd front-end
+```
+Use docker compose to start the front-end
+```bash
+  npm run dev
 ```
