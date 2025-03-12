@@ -130,11 +130,9 @@ async function get_auction_by_id(id, pool_connection) {
     }
     let auction_data = auction_result.rows[0];
     let query_result;
-    if (auction_data.auction_type == "dutch_auction") {
+    if (auction_data.auction_type) {
       //hard coded
-      query_result = await client.query(`SELECT * FROM dutch_auction WHERE auction_id = $1`, [id]);
-    } else if (auction_data.auction_type == "forward_auction") {
-      query_result = await client.query(`SELECT * FROM forward_auction WHERE auction_id = $1`, [id]);
+      query_result = await client.query(`SELECT * FROM ${auction_data.auction_type} WHERE auction_id = $1`, [id]);
     } else {
       //should never happen since auction_type is enforced as non-null in db
       return { status: 400, message: "Missing auction type" };
@@ -158,7 +156,13 @@ async function get_all_auctions(pool_connection) {
   const client = await pool_connection.connect();
   try {
     const get_all = await client.query("SELECT * FROM auctions");
-    return { status: 200, auctions: get_all.rows };
+    const join_types = await Promise.all(
+      get_all.rows.map(async (auction) => {
+        let query = await client.query(`SELECT * FROM ${auction.auction_type} WHERE auction_id = $1`, [auction.auction_id]);
+        return Object.assign({}, auction, query.rows[0]);
+      })
+    );
+    return { status: 200, auctions: join_types };
   } catch (error) {
     throw error;
   } finally {
