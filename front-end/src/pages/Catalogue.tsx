@@ -26,11 +26,19 @@ async function get_all_auctions() {
         image: "/placeholder.svg?height=200&width=300",
       };
       if (auction_data.type == "forward_auction") {
-        auction_data.remainingTime = auction.end_time;
+        const now = new Date();
+        const end_time = new Date(auction.end_time);
+        const calculate_end_time = end_time.getTime() - now.getTime();
+        if (calculate_end_time > 0) {
+          const hours = Math.floor(calculate_end_time / (1000 * 60 * 60)); // Convert ms to hours
+          const minutes = Math.floor((calculate_end_time % (1000 * 60 * 60)) / (1000 * 60)); // Remaining minutes
+          auction_data.remainingTime = `${hours}hr ${minutes}m`;
+        } else {
+          auction_data.remainingTime = "Auction Ended";
+        }
       }
       return auction_data;
     });
-    console.log(formattedData);
     return formattedData;
   }
 }
