@@ -23,19 +23,21 @@ async function get_all_auctions() {
         currentPrice: auction.starting_amount,
         type: auction.auction_type,
         is_active: auction.is_active,
+        image: "/placeholder.svg?height=200&width=300",
       };
-      if (auction_data.type == "forward_auction"){
-        auction_data.remainingTime = auction.
+      if (auction_data.type == "forward_auction") {
+        auction_data.remainingTime = auction.end_time;
       }
+      return auction_data;
     });
     console.log(formattedData);
-    return response_json.auctions;
+    return formattedData;
   }
 }
-await get_all_auctions();
+const auctionItems = await get_all_auctions();
 
 // Mock data for auction items
-const auctionItems = [
+const auctionItems_old = [
   {
     id: 1,
     name: "Vintage Rolex Submariner",
@@ -170,8 +172,8 @@ export default function Catalogue() {
               <TabsTrigger value="all">All Auctions</TabsTrigger>
               <TabsTrigger value="active">Active</TabsTrigger>
               <TabsTrigger value="past">Past</TabsTrigger>
-              <TabsTrigger value="forward">Forward</TabsTrigger>
-              <TabsTrigger value="dutch">Dutch</TabsTrigger>
+              <TabsTrigger value="forward_auction">Forward</TabsTrigger>
+              <TabsTrigger value="dutch_auction">Dutch</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -187,8 +189,8 @@ export default function Catalogue() {
               <Card key={item.id} className="overflow-hidden">
                 <div className="aspect-[3/2] relative">
                   <img src={item.image || "/placeholder.svg"} alt={item.name} className="object-cover w-full h-full" />
-                  <Badge className="absolute top-2 right-2" variant={item.type === "forward" ? "default" : "secondary"}>
-                    {item.type === "forward" ? "Forward Auction" : "Dutch Auction"}
+                  <Badge className="absolute top-2 right-2" variant={item.type === "forward_auction" ? "default" : "secondary"}>
+                    {item.type === "forward_auction" ? "Forward Auction" : "Dutch Auction"}
                   </Badge>
                 </div>
                 <CardContent className="p-4">
@@ -199,7 +201,7 @@ export default function Catalogue() {
                       <p className="text-sm text-muted-foreground">Current bid</p>
                       <p className="font-semibold">${item.currentPrice.toLocaleString()}</p>
                     </div>
-                    {item.type === "forward" && (
+                    {item.type === "forward_auction" && (
                       <div className="flex items-center text-sm text-muted-foreground">
                         <Clock className="h-3.5 w-3.5 mr-1" />
                         {item.remainingTime}
@@ -208,8 +210,8 @@ export default function Catalogue() {
                   </div>
                 </CardContent>
                 <CardFooter className="p-4 pt-0">
-                  <Link to={item.type === "forward" ? `/forward/${item.id}` : `/dutch/${item.id}`} className="w-full">
-                    <Button className="w-full">{item.type === "forward" ? "Place Bid" : "View Auction"}</Button>
+                  <Link to={item.type === "forward_auction" ? `/forward_auction/${item.id}` : `/dutch_auction/${item.id}`} className="w-full">
+                    <Button className="w-full">{item.type === "forward_auction" ? "Place Bid" : "View Auction"}</Button>
                   </Link>
                 </CardFooter>
               </Card>
