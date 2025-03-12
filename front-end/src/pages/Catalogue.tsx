@@ -42,10 +42,10 @@ async function get_all_auctions() {
     return formattedData;
   }
 }
-const auctionItems = await get_all_auctions();
+// const auctionItems = await get_all_auctions();
 
 // Mock data for auction items
-const auctionItems_old = [
+const auctionItems = [
   {
     id: 1,
     name: "Vintage Rolex Submariner",
