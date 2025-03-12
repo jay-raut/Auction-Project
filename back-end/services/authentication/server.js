@@ -180,7 +180,7 @@ app.post("/create-address", async (req, res) => {
     }
     const create_address_status = await auth_functions.create_address(decrypted_token.user, addressData, pool);
     return res.status(create_address_status.status).json({ message: create_address_status.message });
-  } catch {
+  } catch (error) {
     console.log(error);
     res.status(400).json({ message: "Could not create new address" });
   }

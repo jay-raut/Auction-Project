@@ -91,6 +91,10 @@ async function pay_order(order_id, user_id, transaction_info, pool_connection) {
       //check if the user is allowed to see this order
       return { status: 401, message: "This order does not belong to you" };
     }
+
+    if (get_order.status != "pending"){
+      return {status: 400, message: `This order is already ${get_order.status}`}
+    }
     const check_existing_transaction = await client.query("SELECT * from transactions WHERE order_id = $1", [order_id]);
     if (check_existing_transaction.rows.length != 0) {
       //if a transaction exists check it
