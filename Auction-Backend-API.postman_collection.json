@@ -1,0 +1,687 @@
+{
+	"info": {
+		"_postman_id": "f0726a48-4f6f-48ca-86da-a1e2e54f6038",
+		"name": "Auction-Backend-API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "28964913"
+	},
+	"item": [
+		{
+			"name": "Login Request (Assumes user already created) MUST USE THIS TO OBTAIN JWT TOKEN. TOKEN IS IN COOKIES",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"username\": \"someuser\",\n  \"password\": \"somepassword\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/authentication/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"authentication",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login Request (Using incorrect credentials)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"username\": \"incorrect_user\",\n  \"password\": \"incorrect_password\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/authentication/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"authentication",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Register Request (Assumes user was not created yet)",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"someuser\",\n    \"password\": \"somepassword\",\n    \"first_name\": \"some_first_name\",\n    \"last_name\": \"some_last_name\",\n    \"street_address\": \"young street\",\n    \"street_number\": \"123\",\n    \"zip_code\": \"10001\",\n    \"city\": \"New York\",\n    \"country\": \"USA\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/authentication/register",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"authentication",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Register Request (Tries to make a new account of the same username. Assumes someuser was already created)",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"someuser\",\n    \"password\": \"somepassword\",\n    \"first_name\": \"some_first_name\",\n    \"last_name\": \"some_last_name\",\n    \"street_address\": \"young street\",\n    \"street_number\": \"123\",\n    \"zip_code\": \"10001\",\n    \"city\": \"New York\",\n    \"country\": \"USA\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/authentication/register",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"authentication",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create forward auction starting right now ",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"item_name\":\"some item name\",\n    \"item_description\": \"some description\",\n    \"auction_type\": \"forward_auction\",\n    \"start_time\": \"now\",\n    \"starting_amount\": 10.00,\n    \"end_time\": 1781258623\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:3000/api/auction/create",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"auction",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create forward auction (With start time being in the past)",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"item_name\":\"some item name\",\n    \"item_description\": \"some description\",\n    \"auction_type\": \"forward_auction\",\n    \"start_time\": 1581258623,\n    \"starting_amount\": 10.00,\n    \"end_time\": 1781258623\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:3000/api/auction/create",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"auction",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create forward auction starting right now  (With end time being in the past)",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"item_name\":\"some item name\",\n    \"item_description\": \"some description\",\n    \"auction_type\": \"forward_auction\",\n    \"start_time\": \"now\",\n    \"starting_amount\": 10.00,\n    \"end_time\": 1651258623\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:3000/api/auction/create",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"auction",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create forward auction (With start time being greater than end time)",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"item_name\":\"some item name\",\n    \"item_description\": \"some description\",\n    \"auction_type\": \"forward_auction\",\n    \"start_time\": 1881258623,\n    \"starting_amount\": 10.00,\n    \"end_time\": 1781258623\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:3000/api/auction/create",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"auction",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create dutch auction right now",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"item_name\":\"some item name\",\n    \"item_description\": \"some description\",\n    \"auction_type\": \"dutch_auction\",\n    \"start_time\": \"now\",\n    \"starting_amount\": 13\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:3000/api/auction/create",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"auction",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create dutch auction (start time in the past)",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"item_name\":\"some item name\",\n    \"item_description\": \"some description\",\n    \"auction_type\": \"dutch_auction\",\n    \"start_time\": 1701258623,\n    \"starting_amount\": 13\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:3000/api/auction/create",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"auction",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create auction of invalid type",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"item_name\":\"some item name\",\n    \"item_description\": \"some description\",\n    \"auction_type\": \"some_invalid_type\",\n    \"start_time\": \"now\",\n    \"starting_amount\": 13\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:3000/api/auction/create",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"auction",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create payment method (Assumes the user is currently logged in with token in cookies)",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"card_number\":1234567890123456,\n    \"name_on_card\": \"Some name\",\n    \"expiration_date\":{\n        \"year\": 2025,\n        \"month\": 12\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/authentication/create-payment-method",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"authentication",
+						"create-payment-method"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create a new address (assumes user is logged in)",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"street_address\": \"123 Main St\",\n    \"street_number\": \"13\",\n    \"zip_code\": \"10001\",\n    \"city\": \"New York\",\n    \"country\": \"USA\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:3000/api/authentication/create-address",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"authentication",
+						"create-address"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get user address (Assumes user is logged in)",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/api/authentication/address",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"authentication",
+						"address"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get a user's payment info (assumes user is logged in)",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/api/authentication/payment",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"authentication",
+						"payment"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get auctions by name (assumes database was populated using postman requests before)",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/api/auction/search/some",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"auction",
+						"search",
+						"some"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Bid on dutch auction (Only auction owner can do this, assumes previous user was created, logged in, and a live dutch auction exists) ",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"bid\":12.5\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:3000/api/auction/bid/73f42d24-2039-4a47-a1fb-064fe4faeb61",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"auction",
+						"bid",
+						"73f42d24-2039-4a47-a1fb-064fe4faeb61"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Bid on forward auction (Only auction owner can do this, assumes previous user was created, logged in, and a live dutch auction exists)",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"bid\":12.5\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:3000/api/auction/bid/73f42d24-2039-4a47-a1fb-064fe4faeb61",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"auction",
+						"bid",
+						"73f42d24-2039-4a47-a1fb-064fe4faeb61"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all active auctions",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/api/auction/all-active",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"auction",
+						"all-active"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all auctions (active or not)",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/api/auction/all",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"auction",
+						"all"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Buy dutch auction now (assumes dutch auction is active)",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/api/auction/buy-now/73f42d24-2039-4a47-a1fb-064fe4faeb61",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"auction",
+						"buy-now",
+						"73f42d24-2039-4a47-a1fb-064fe4faeb61"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get user's orders (assumes user is logged in)",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/api/payment/all",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"payment",
+						"all"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Payment for an order (assumes the order is not pending and user is logged in)",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"payment_details\": {\n        \"card_number\": \"1234567890123456\",\n        \"name_on_card\": \"Some name\",\n        \"expiration_date\": {\n            \"year\": 2025,\n            \"month\": 12\n        }\n    },\n    \"shipping_address\": {\n        \"street_address\": \"Main St\",\n        \"street_number\": 123,\n        \"city\": \"New York\",\n        \"zip_code\": \"10001\",\n        \"country\": \"USA\"\n    },\n    \"billing_address\": {\n        \"street_address\": \"young street\",\n        \"street_number\": 123,\n        \"city\": \"New York\",\n        \"zip_code\": \"10001\",\n        \"country\": \"USA\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:3000/api/payment/submit-payment/4865f71e-805a-4933-add8-c68856293c34",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"payment",
+						"submit-payment",
+						"4865f71e-805a-4933-add8-c68856293c34"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
