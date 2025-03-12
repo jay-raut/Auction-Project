@@ -525,7 +525,7 @@
 			"response": []
 		},
 		{
-			"name": "Bid on forward auction (Only auction owner can do this, assumes previous user was created, logged in, and a live dutch auction exists)",
+			"name": "Bid on forward auction",
 			"request": {
 				"auth": {
 					"type": "noauth"
@@ -542,7 +542,7 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:3000/api/auction/bid/73f42d24-2039-4a47-a1fb-064fe4faeb61",
+					"raw": "localhost:3000/api/auction/bid/312ea822-cdef-4059-bae0-834b5d9da35f",
 					"host": [
 						"localhost"
 					],
@@ -551,7 +551,7 @@
 						"api",
 						"auction",
 						"bid",
-						"73f42d24-2039-4a47-a1fb-064fe4faeb61"
+						"312ea822-cdef-4059-bae0-834b5d9da35f"
 					]
 				}
 			},
