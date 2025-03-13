@@ -9,6 +9,7 @@ import Forward from './pages/Forward'
 import Dutch from './pages/Dutch'
 import AuctionEnded from './pages/AuctionEnded'
 import Payment from './pages/Payment'
+import Receipt from './pages/Receipt'
 import { Toaster } from 'sonner'
 
 function App() {
@@ -38,6 +39,7 @@ function App() {
             <Route path="/dutch_auction/:id" element={isAuthenticated ? <Dutch /> : <Login />} />
             <Route path="/auction-ended/:id" element={isAuthenticated ? <AuctionEnded /> : <Login />} />
             <Route path="/payment/:id" element={isAuthenticated ? <Payment /> : <Login />} />
+            <Route path="/receipt/:id" element={isAuthenticated ? <Receipt /> : <Login />} />
           </Route>
         </Routes>
       </BrowserRouter>
