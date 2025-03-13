@@ -73,7 +73,11 @@ Assuming current directory is /Auction-Project
 ```bash
   cd front-end
 ```
-Use docker compose to start the front-end
+Install dependencies
+```bash
+  npm install
+```
+Run project in development mode
 ```bash
   npm run dev
 ```
