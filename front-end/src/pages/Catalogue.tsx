@@ -145,7 +145,7 @@ const auctionItems = [
 ];
 
 export default function Catalogue() {
-  const isAuthenticated = localStorage.getItem("isAuthenticated");
+  const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem("isAuthenticated") === "true");
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
 
