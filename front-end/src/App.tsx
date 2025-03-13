@@ -6,6 +6,7 @@ import Layout from "./components/Layout"
 import Signup from "./pages/Signup"
 import Catalogue from './pages/Catalogue'
 import Forward from './pages/Forward'
+import Dutch from './pages/Dutch'
 import { Toaster } from 'sonner'
 
 function App() {
@@ -19,19 +20,20 @@ function App() {
     else {
       setIsAuthenticated(false)
     }
-  }, []);
+  });
 
   return (
     <>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Layout />}>
-            <Route index element={isAuthenticated ? <Catalogue /> : <Landing />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
+            <Route index element={<Catalogue />} />
+            <Route path="/login" element={isAuthenticated ? <Catalogue /> : <Login />} />
+            <Route path="/signup" element={isAuthenticated ? <Catalogue /> : <Signup />} />
             <Route path="/landing" element={<Landing />} />
-            <Route path="/catalogue" element={<Catalogue />} />
-            <Route path="/forward/:id" element={<Forward />} />
+            <Route path="/catalogue" element={isAuthenticated ? <Catalogue /> : <Landing />} />
+            <Route path="/forward_auction/:id" element={isAuthenticated ? <Forward /> : <Login />} />
+            <Route path="/dutch_auction/:id" element={isAuthenticated ? <Dutch /> : <Login />} />
           </Route>
         </Routes>
       </BrowserRouter>

@@ -13,7 +13,7 @@ export default function Layout() {
     // In a real app, this would call your logout API
     localStorage.removeItem("isAuthenticated")
     toast.success("Logged out successfully")
-    navigate("/login")
+    navigate("/", { replace: true });
   }
 
   return (
@@ -26,12 +26,12 @@ export default function Layout() {
           </Link>
 
           <div className="flex items-center gap-4">
-            <Link to="/catalogue">
+            {isAuthenticated && <Link to="/catalogue">
               <Button variant="ghost">
                 <ShoppingBag className="h-5 w-5 mr-2" />
                 Auctions
               </Button>
-            </Link>
+            </Link>}
 
             {isAuthenticated ? (
               <DropdownMenu>

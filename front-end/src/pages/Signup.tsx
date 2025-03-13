@@ -56,34 +56,38 @@ export default function Signup() {
   const onSubmit = async (data: SignupFormValues) => {
     try {
       setError(null);
+
       // In a real app, this would call your signup API
       console.log("Signup data:", data);
-      if (data.password !== data.confirmPassword) {
-        setError("Passwords must match");
-        return;
-      }
-      const formattedData = {
-        username: data.username,
-        password: data.password,
-        first_name: data.firstName,
-        last_name: data.lastName, 
-        street_address: data.streetName, 
-        street_number: data.streetNumber,
-        city: data.city,
-        country: data.country,
-        zip_code: data.postalCode,
-      };
-      const sign_up_status = await register(formattedData);
-      if (sign_up_status.ok || true) {
-        // Mock successful signup
-        localStorage.setItem("isAuthenticated", "true");
-        toast.success("Account created successfully");
-        navigate("/");
-      } else {
-        const errorData = await sign_up_status.json();
-        setError(errorData.error || "Signup failed");
-        console.log(`Could not sign up:`, errorData);
-      }
+
+      // Mock successful signup
+      localStorage.setItem("isAuthenticated", "true");
+      toast.success("Account created successfully");
+      navigate("/", { replace: true });
+
+      // if (data.password !== data.confirmPassword) {
+      //   setError("Passwords must match");
+      //   return;
+      // }
+      // const formattedData = {
+      //   username: data.username,
+      //   password: data.password,
+      //   first_name: data.firstName,
+      //   last_name: data.lastName, 
+      //   street_address: data.streetName, 
+      //   street_number: data.streetNumber,
+      //   city: data.city,
+      //   country: data.country,
+      //   zip_code: data.postalCode,
+      // };
+      // const sign_up_status = await register(formattedData);
+      // if (sign_up_status.ok || true) {
+      // 
+      // } else {
+      //   const errorData = await sign_up_status.json();
+      //   setError(errorData.error || "Signup failed");
+      //   console.log(`Could not sign up:`, errorData);
+      // }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create account");
     }

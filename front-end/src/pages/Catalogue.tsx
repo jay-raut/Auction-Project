@@ -51,7 +51,7 @@ const auctionItems = [
     name: "Vintage Rolex Submariner",
     description: "A classic timepiece in excellent condition",
     currentPrice: 5250,
-    type: "forward",
+    type: "forward_auction",
     remainingTime: "2h 15m",
     is_active: true,
     image: "/placeholder.svg?height=200&width=300",
@@ -61,7 +61,7 @@ const auctionItems = [
     name: "Rare First Edition Book",
     description: "First edition of a classic novel",
     currentPrice: 1200,
-    type: "forward",
+    type: "forward_auction",
     remainingTime: "4h 30m",
     is_active: true,
     image: "/placeholder.svg?height=200&width=300",
@@ -71,7 +71,7 @@ const auctionItems = [
     name: "Antique Wooden Desk",
     description: "19th century mahogany writing desk",
     currentPrice: 3500,
-    type: "dutch",
+    type: "dutch_auction",
     is_active: true,
     image: "/placeholder.svg?height=200&width=300",
   },
@@ -80,7 +80,7 @@ const auctionItems = [
     name: "Modern Art Painting",
     description: "Original canvas by contemporary artist",
     currentPrice: 2800,
-    type: "dutch",
+    type: "dutch_auction",
     is_active: true,
     image: "/placeholder.svg?height=200&width=300",
   },
@@ -89,7 +89,7 @@ const auctionItems = [
     name: "Vintage Camera Collection",
     description: "Set of 5 rare film cameras from the 1960s",
     currentPrice: 950,
-    type: "forward",
+    type: "forward_auction",
     remainingTime: "1d 3h",
     is_active: true,
     image: "/placeholder.svg?height=200&width=300",
@@ -99,7 +99,7 @@ const auctionItems = [
     name: "Handcrafted Leather Sofa",
     description: "Premium full-grain leather sofa",
     currentPrice: 4200,
-    type: "dutch",
+    type: "dutch_auction",
     is_active: false,
     image: "/placeholder.svg?height=200&width=300",
   },
@@ -108,7 +108,7 @@ const auctionItems = [
     name: "Limited Edition Sneakers",
     description: "Rare collector's edition, never worn",
     currentPrice: 750,
-    type: "forward",
+    type: "forward_auction",
     remainingTime: "5h 45m",
     is_active: true,
     image: "/placeholder.svg?height=200&width=300",
@@ -118,7 +118,7 @@ const auctionItems = [
     name: "Gaming PC Setup",
     description: "High-end gaming computer with accessories",
     currentPrice: 1800,
-    type: "dutch",
+    type: "dutch_auction",
     is_active: true,
     image: "/placeholder.svg?height=200&width=300",
   },
@@ -127,7 +127,7 @@ const auctionItems = [
     name: "Classic Car",
     description: "This classic car auction has ended.",
     currentPrice: 15000,
-    type: "forward",
+    type: "forward_auction",
     is_active: false,
     remainingTime: "",
     image: "/placeholder.svg?height=200&width=300",
@@ -137,7 +137,7 @@ const auctionItems = [
     name: "Luxury Watch",
     description: "Luxury watch auction that is no longer active.",
     currentPrice: 8000,
-    type: "forward",
+    type: "forward_auction",
     is_active: false,
     remainingTime: "",
     image: "/placeholder.svg?height=200&width=300",
@@ -145,6 +145,7 @@ const auctionItems = [
 ];
 
 export default function Catalogue() {
+  const isAuthenticated = localStorage.getItem("isAuthenticated");
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
 
@@ -159,12 +160,13 @@ export default function Catalogue() {
       return matchesSearch && item.is_active === false;
     }
 
-    return matchesSearch && item.type === activeTab;
+    return item.type === activeTab;
   });
 
   return (
     <div className="container py-10">
-      <div className="flex flex-col gap-6">
+      {isAuthenticated ? (
+        <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl font-bold tracking-tight">Auction Catalogue</h1>
           <p className="text-muted-foreground">Browse and bid on unique items from around the world</p>
@@ -227,6 +229,11 @@ export default function Catalogue() {
           </div>
         )}
       </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <p className="text-lg font-medium">Please log in to view the catalogue</p>
+        </div>
+      )}
     </div>
   );
 }
