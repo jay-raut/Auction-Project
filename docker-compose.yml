@@ -3,6 +3,11 @@ services:
     image: node
     container_name: auction-service
     working_dir: /auction
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
     volumes:
       - ./back-end/services/auction:/auction
     ports:
@@ -13,6 +18,11 @@ services:
     image: node
     container_name: order-service
     working_dir: /orders
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
     volumes:
       - ./back-end/services/orders:/orders
     ports:
@@ -23,6 +33,11 @@ services:
     image: node
     container_name: notification-service
     working_dir: /notification
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
     volumes:
       - ./back-end/services/notification:/notification
     ports:
@@ -33,6 +48,11 @@ services:
     image: node
     container_name: auth-service
     working_dir: /authentication
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
     volumes:
       - ./back-end/services/authentication:/authentication
     ports:
@@ -43,6 +63,11 @@ services:
     image: node
     container_name: auction_event_job
     working_dir: /jobs
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
     volumes:
       - ./back-end/services/jobs:/jobs
     command: ["sh", "-c", "npm install -g env-cmd nodemon && env-cmd -f /jobs/.env nodemon auction_events.js"]
@@ -70,6 +95,11 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./back-end/databases/postgres/init-database:/docker-entrypoint-initdb.d
       - ./back-end/databases/postgres/schema:/schema
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
@@ -98,12 +128,18 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--list", "--bootstrap-server", "kafka:9092"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   create-topics:
     image: confluentinc/cp-kafka:latest
     container_name: kafka-create-topics
     depends_on:
-      - kafka
+      kafka:
+        condition: service_healthy
     entrypoint: ["/bin/sh", "-c"]
     command: >
       echo 'Waiting for Kafka to be ready...';

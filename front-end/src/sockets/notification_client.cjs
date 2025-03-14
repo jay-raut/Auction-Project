@@ -1,19 +1,20 @@
+const { subscribe } = require("diagnostics_channel");
 const { io } = require("socket.io-client");
 
 const socket = io("http://localhost:3000", {
   path: "/api/notification/socket",
   transports: ["websocket"],
   auth: {
-    token: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNvbWV1c2VyIiwidXNlcl9pZCI6IjA1YWFmZmE4LTA2NzYtNGQ3Ni1iYzE1LTk5YWRiYTljNmZhNiIsImZpcnN0X25hbWUiOiJzb21lX2ZpcnN0X25hbWUiLCJsYXN0X25hbWUiOiJzb21lX2xhc3RfbmFtZSIsImlhdCI6MTc0MTkxODcyOCwiZXhwIjoxNzQxOTM2NzI4fQ.pfO450mk3AEta_PnRiw2dxmGyKS0ZSZxhp3vNgNDcxc`,
+    token: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNvbWV1c2VyIiwidXNlcl9pZCI6IjVkZDk1OTg2LTkzYzUtNDJlZC1hODkyLTc3NTEyNTM2OWM5NCIsImZpcnN0X25hbWUiOiJzb21lX2ZpcnN0X25hbWUiLCJsYXN0X25hbWUiOiJzb21lX2xhc3RfbmFtZSIsImlhdCI6MTc0MTkyMDE1NywiZXhwIjoxNzQxOTM4MTU3fQ.GxkkBsN1sv5hn1kxW-AaFpucCtfQReC-539eGhqUX7w`,
   },
 });
 
 socket.on("connect_error", (err) => {
+  subscribe.emit("subscribe", "8b20d8da-e812-4880-a227-80f4f1b0cf03")
   console.log(err);
 });
 
 socket.on("connect", () => {
-  socket.emit("subscribe", "ee2f9a7d-9e8b-4c18-bd71-e56be18f7941")
   console.log("Connected to server");
 });
 
