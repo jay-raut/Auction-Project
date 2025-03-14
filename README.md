@@ -26,4 +26,5 @@ Run project in development mode
   npm run dev
 ```
 ## If using docker desktop, the end result should look like this
-![image](https://github.com/user-attachments/assets/1959a631-6803-478e-b2f0-9856bbc48651)
+![image](https://github.com/user-attachments/assets/e7771152-f802-4d5a-b58e-08e6200ebf76)
+
