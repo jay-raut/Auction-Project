@@ -64,6 +64,7 @@ async function start_consumers() {
       }
       if (data.event_type == "order.ready") {
         const get_user_socket_id = connected_users.get(data.user);
+        console.log(connected_users);
         console.log(get_user_socket_id);
         io.to(get_user_socket_id).emit("order.ready", data.order);
       }
