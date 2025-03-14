@@ -81,4 +81,5 @@ Run project in development mode
 ```bash
   npm run dev
 ```
+## If using docker desktop, the end result should look like this
 ![image](https://github.com/user-attachments/assets/1959a631-6803-478e-b2f0-9856bbc48651)
