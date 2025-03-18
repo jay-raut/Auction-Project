@@ -139,36 +139,40 @@ const run = async () => {
   await producer.connect();
   await consumer.subscribe({ topics: ["order.create"], fromBeginning: false });
   await consumer.run({
-    eachMessage: async ({ partition, message }) => {
+    autoCommit: false,
+    eachMessage: async ({ topic, partition, message, heartbeat }) => {
       const data = JSON.parse(message.value.toString());
       console.log(data);
+
       try {
         if (data.event_type == "order.create") {
           const order_creation_status = await order_functions.process_order(data, pool);
+
           if (order_creation_status.status == 200) {
-            await producer
-              .send({
-                topic: "notification.auction.event",
-                messages: [{ value: JSON.stringify({ event_type: "order.ready", user: data.user, order: order_creation_status.order }) }],
-              })
-              .catch((error) => console.log(error));
+            await producer.send({
+              topic: "notification.auction.event",
+              messages: [{ value: JSON.stringify({ event_type: "order.ready", user: data.user, order: order_creation_status.order }) }],
+            });
+
+            await consumer.commitOffsets([{ topic, partition, offset: (BigInt(message.offset) + BigInt(1)).toString() }]);
+            //commit only on success
           } else {
-            //put the order back into order.create for another worker to handle
-            console.log("could not create order");
+            console.log("Could not create order");
             const retry_count = data.attempt ? data.attempt : 1;
+
             if (retry_count < max_order_retries) {
-              await producer
-                .send({
-                  topic: "order.create",
-                  messages: [{ value: JSON.stringify({ event_type: "order.create", user: data.user, winning_amount: data.winning_amount, auction: data.auction, attempt: retry_count + 1 }) }],
-                })
-                .catch((error) => console.log(error));
+              await producer.send({
+                topic: "order.create",
+                messages: [{ value: JSON.stringify({ ...data, attempt: retry_count + 1 }) }],
+              });
             }
           }
         }
       } catch (error) {
-        console.log(error);
+        console.log("Error processing message:", error);
       }
+
+      await heartbeat();
     },
   });
 };

@@ -5,16 +5,17 @@ const socket = io("http://localhost:3000", {
   path: "/api/notification/socket",
   transports: ["websocket"],
   auth: {
-    token: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNvbWV1c2VyIiwidXNlcl9pZCI6IjVkZDk1OTg2LTkzYzUtNDJlZC1hODkyLTc3NTEyNTM2OWM5NCIsImZpcnN0X25hbWUiOiJzb21lX2ZpcnN0X25hbWUiLCJsYXN0X25hbWUiOiJzb21lX2xhc3RfbmFtZSIsImlhdCI6MTc0MjAyMDIyMiwiZXhwIjoxNzQyMDM4MjIyfQ.d0roxqzi-oXv0mTZYn6_f7wN8Aauuwo0TOAQPgWEUnM`,
+    token: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNvbWV1c2VyIiwidXNlcl9pZCI6IjVkZDk1OTg2LTkzYzUtNDJlZC1hODkyLTc3NTEyNTM2OWM5NCIsImZpcnN0X25hbWUiOiJzb21lX2ZpcnN0X25hbWUiLCJsYXN0X25hbWUiOiJzb21lX2xhc3RfbmFtZSIsImlhdCI6MTc0MjI2MTIzMCwiZXhwIjoxNzQyMjc5MjMwfQ.tveM3isOkkjR-fRO66sVOBU1oXnl5Rw4xm3vtB-L7YM`,
   },
 });
 
 socket.on("connect_error", (err) => {
-  socket.emit("subscribe", "b8a37ce4-e4db-4e70-ad9c-ab4444f14847")
+  
   console.log(err);
 });
 
 socket.on("connect", () => {
+  socket.emit("subscribe", "cd9d1fe8-1300-4427-8768-7297821c2b96")
   console.log("Connected to server");
 });
 

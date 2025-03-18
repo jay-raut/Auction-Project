@@ -1,5 +1,5 @@
 require("dotenv").config(); //environment variables
-const max_order_retries = process.env.max_order_retries;
+const max_order_retries = Number(process.env.max_order_retries) || 3;
 if (!max_order_retries) {
   throw new Error("Cannot get max retries env variable");
 }

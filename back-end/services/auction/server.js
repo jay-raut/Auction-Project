@@ -174,7 +174,7 @@ app.post("/buy-now/:id", async (req, res) => {
       return res.status(verify_result.status).json({ message: "Could not verify session. Log in again" });
     }
     const buy_now = await auction_functions.buy_now(auction_id, verify_result.user, pool, redis_client, producer);
-    if ((buy_now.status = 200)) {
+    if ((buy_now.status == 200)) {
       return res.status(200).json({ message: buy_now.message });
     }
     return res.status(buy_now.status).json({ message: buy_now.message });
