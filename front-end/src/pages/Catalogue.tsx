@@ -23,126 +23,38 @@ async function get_all_auctions() {
         currentPrice: auction.starting_amount,
         type: auction.auction_type,
         is_active: auction.is_active,
-        image: "/placeholder.svg?height=200&width=300",
       };
       if (auction_data.type == "forward_auction") {
         const now = new Date();
         const end_time = new Date(auction.end_time);
         const calculate_end_time = end_time.getTime() - now.getTime();
+
         if (calculate_end_time > 0) {
-          const hours = Math.floor(calculate_end_time / (1000 * 60 * 60)); // Convert ms to hours
+          const days = Math.floor(calculate_end_time / (1000 * 60 * 60 * 24)); // Calculate days
+          const hours = Math.floor((calculate_end_time % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)); // Remaining hours
           const minutes = Math.floor((calculate_end_time % (1000 * 60 * 60)) / (1000 * 60)); // Remaining minutes
-          auction_data.remainingTime = `${hours}hr ${minutes}m`;
+
+          if (days > 0) {
+            auction_data.remainingTime = `${days}d ${hours}hr ${minutes}m`;
+          } else {
+            auction_data.remainingTime = `${hours}hr ${minutes}m`;
+          }
         } else {
           auction_data.remainingTime = "Auction Ended";
         }
       }
+
       return auction_data;
     });
     return formattedData;
   }
 }
-// const auctionItems = await get_all_auctions();
 
-// Mock data for auction items
-const auctionItems = [
-  {
-    id: 1,
-    name: "Vintage Rolex Submariner",
-    description: "A classic timepiece in excellent condition",
-    currentPrice: 5250,
-    type: "forward_auction",
-    remainingTime: "2h 15m",
-    is_active: true,
-    image: "/placeholder.svg?height=200&width=300",
-  },
-  {
-    id: 2,
-    name: "Rare First Edition Book",
-    description: "First edition of a classic novel",
-    currentPrice: 1200,
-    type: "forward_auction",
-    remainingTime: "4h 30m",
-    is_active: true,
-    image: "/placeholder.svg?height=200&width=300",
-  },
-  {
-    id: 3,
-    name: "Antique Wooden Desk",
-    description: "19th century mahogany writing desk",
-    currentPrice: 3500,
-    type: "dutch_auction",
-    is_active: true,
-    image: "/placeholder.svg?height=200&width=300",
-  },
-  {
-    id: 4,
-    name: "Modern Art Painting",
-    description: "Original canvas by contemporary artist",
-    currentPrice: 2800,
-    type: "dutch_auction",
-    is_active: true,
-    image: "/placeholder.svg?height=200&width=300",
-  },
-  {
-    id: 5,
-    name: "Vintage Camera Collection",
-    description: "Set of 5 rare film cameras from the 1960s",
-    currentPrice: 950,
-    type: "forward_auction",
-    remainingTime: "1d 3h",
-    is_active: true,
-    image: "/placeholder.svg?height=200&width=300",
-  },
-  {
-    id: 6,
-    name: "Handcrafted Leather Sofa",
-    description: "Premium full-grain leather sofa",
-    currentPrice: 4200,
-    type: "dutch_auction",
-    is_active: false,
-    image: "/placeholder.svg?height=200&width=300",
-  },
-  {
-    id: 7,
-    name: "Limited Edition Sneakers",
-    description: "Rare collector's edition, never worn",
-    currentPrice: 750,
-    type: "forward_auction",
-    remainingTime: "5h 45m",
-    is_active: true,
-    image: "/placeholder.svg?height=200&width=300",
-  },
-  {
-    id: 8,
-    name: "Gaming PC Setup",
-    description: "High-end gaming computer with accessories",
-    currentPrice: 1800,
-    type: "dutch_auction",
-    is_active: true,
-    image: "/placeholder.svg?height=200&width=300",
-  },
-  {
-    id: 9,
-    name: "Classic Car",
-    description: "This classic car auction has ended.",
-    currentPrice: 15000,
-    type: "forward_auction",
-    is_active: false,
-    remainingTime: "",
-    image: "/placeholder.svg?height=200&width=300",
-  },
-  {
-    id: 10,
-    name: "Luxury Watch",
-    description: "Luxury watch auction that is no longer active.",
-    currentPrice: 8000,
-    type: "forward_auction",
-    is_active: false,
-    remainingTime: "",
-    image: "/placeholder.svg?height=200&width=300",
-  },
-];
+
+
+const auctionItems = await get_all_auctions();
+
+
 
 export default function Catalogue() {
   const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem("isAuthenticated") === "true");
@@ -167,68 +79,67 @@ export default function Catalogue() {
     <div className="container py-10">
       {isAuthenticated ? (
         <div className="flex flex-col gap-6">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold tracking-tight">Auction Catalogue</h1>
-          <p className="text-muted-foreground">Browse and bid on unique items from around the world</p>
-        </div>
-
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative w-full max-w-sm">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input type="search" placeholder="Search items..." className="w-full pl-8" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+          <div className="flex flex-col gap-2">
+            <h1 className="text-3xl font-bold tracking-tight">Auction Catalogue</h1>
+            <p className="text-muted-foreground">Browse and bid on unique items from around the world</p>
           </div>
-          <Tabs defaultValue="all" className="w-full sm:w-auto" onValueChange={setActiveTab}>
-            <TabsList>
-              <TabsTrigger value="all">All Auctions</TabsTrigger>
-              <TabsTrigger value="active">Active</TabsTrigger>
-              <TabsTrigger value="past">Past</TabsTrigger>
-              <TabsTrigger value="forward_auction">Forward</TabsTrigger>
-              <TabsTrigger value="dutch_auction">Dutch</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
 
-        {filteredItems.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <p className="text-lg font-medium">No items found</p>
-            <p className="text-muted-foreground">Try adjusting your search or filters</p>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative w-full max-w-sm">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input type="search" placeholder="Search items..." className="w-full pl-8" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+            </div>
+            <Tabs defaultValue="all" className="w-full sm:w-auto" onValueChange={setActiveTab}>
+              <TabsList>
+                <TabsTrigger value="all">All Auctions</TabsTrigger>
+                <TabsTrigger value="active">Active</TabsTrigger>
+                <TabsTrigger value="past">Past</TabsTrigger>
+                <TabsTrigger value="forward_auction">Forward</TabsTrigger>
+                <TabsTrigger value="dutch_auction">Dutch</TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filteredItems.map((item) => (
-              <Card key={item.id} className="overflow-hidden">
-                <div className="aspect-[3/2] relative">
-                  <img src={item.image || "/placeholder.svg"} alt={item.name} className="object-cover w-full h-full" />
-                  <Badge className="absolute top-2 right-2" variant={item.type === "forward_auction" ? "default" : "secondary"}>
-                    {item.type === "forward_auction" ? "Forward Auction" : "Dutch Auction"}
-                  </Badge>
-                </div>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold text-lg truncate">{item.name}</h3>
-                  <p className="text-sm text-muted-foreground line-clamp-2 h-10">{item.description}</p>
-                  <div className="mt-2 flex justify-between items-center">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Current bid</p>
-                      <p className="font-semibold">${item.currentPrice.toLocaleString()}</p>
-                    </div>
-                    {item.type === "forward_auction" && (
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <Clock className="h-3.5 w-3.5 mr-1" />
-                        {item.remainingTime}
-                      </div>
-                    )}
+
+          {filteredItems.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <p className="text-lg font-medium">No items found</p>
+              <p className="text-muted-foreground">Try adjusting your search or filters</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {filteredItems.map((item) => (
+                <Card key={item.id} className="overflow-hidden">
+                  <div className="aspect-[3/2] relative">
+                    <Badge className="absolute top-2 right-2" variant={item.type === "forward_auction" ? "default" : "secondary"}>
+                      {item.type === "forward_auction" ? "Forward Auction" : "Dutch Auction"}
+                    </Badge>
                   </div>
-                </CardContent>
-                <CardFooter className="p-4 pt-0">
-                  <Link to={item.type === "forward_auction" ? `/forward_auction/${item.id}` : `/dutch_auction/${item.id}`} className="w-full">
-                    <Button className="w-full">{item.type === "forward_auction" ? "Place Bid" : "View Auction"}</Button>
-                  </Link>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold text-lg truncate">{item.name}</h3>
+                    <p className="text-sm text-muted-foreground line-clamp-2 h-10">{item.description}</p>
+                    <div className="mt-2 flex justify-between items-center">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Current bid</p>
+                        <p className="font-semibold">${item.currentPrice.toLocaleString()}</p>
+                      </div>
+                      {item.type === "forward_auction" && (
+                        <div className="flex items-center text-sm text-muted-foreground">
+                          <Clock className="h-3.5 w-3.5 mr-1" />
+                          {item.remainingTime}
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                  <CardFooter className="p-4 pt-0">
+                    <Link to={item.type === "forward_auction" ? `/forward_auction/${item.id}` : `/dutch_auction/${item.id}`} className="w-full">
+                      <Button className="w-full">{item.type === "forward_auction" ? "Place Bid" : "View Auction"}</Button>
+                    </Link>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
       ) : (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <p className="text-lg font-medium">Please log in to view the catalogue</p>

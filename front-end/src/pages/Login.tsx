@@ -12,6 +12,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
+
+
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is required"),
@@ -49,19 +51,17 @@ export default function Login() {
       setError(null);
 
       console.log("Login data:", data);
-      
-      // Mock successful signup
-      localStorage.setItem("isAuthenticated", "true");
-      toast.success("Successfully logged in");
-      navigate("/", { replace : true });
 
-      // const login_status = await loginUser(data);
+      const login_status = await loginUser(data);
 
-      // if (login_status.ok || true) { //always true
-
-      // } else {
-      //   console.log(`Could not login ${await login_status.json()}`);
-      // }
+      if (login_status.ok) {
+        localStorage.setItem("isAuthenticated", "true");
+        toast.success("Successfully logged in");
+        navigate("/", { replace: true });
+      } else {
+        setError("Could not login check username or password");
+        console.log(`Could not login ${await login_status.json()}`);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Invalid username or password");
     }

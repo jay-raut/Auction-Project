@@ -8,7 +8,7 @@ const io = new Server(server_port, {
 });
 
 const kafka = new Kafka({ clientId: `notification-service-${server_port}`, brokers: [`${process.env.kafka_address}:${process.env.kafka_port}`] });
-const auction_event_consumer = kafka.consumer({
+const auction_event_consumer = kafka.consumer({ //multiple consumer groups
   groupId: `auction-event-consumers-${server_port}`,
 });
 
@@ -48,7 +48,7 @@ async function start_consumers() {
   await auction_event_consumer.connect();
   await auction_bid_consumer.connect();
 
-  await auction_event_consumer.subscribe({ topic: "notification.auction.event", fromBeginning: false }); //start at the beginning such that new instances can be synced
+  await auction_event_consumer.subscribe({ topic: "notification.auction.event", fromBeginning: false }); 
   await auction_bid_consumer.subscribe({ topic: "notification.auction.bid", fromBeginning: false }); //do not start at the beginning
 
   auction_event_consumer.run({

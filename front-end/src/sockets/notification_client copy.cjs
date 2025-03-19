@@ -5,7 +5,7 @@ const socket = io("http://localhost:3000", {
   path: "/api/notification/socket",
   transports: ["websocket"],
   auth: {
-    token: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNvbWV1c2VyIiwidXNlcl9pZCI6IjVkZDk1OTg2LTkzYzUtNDJlZC1hODkyLTc3NTEyNTM2OWM5NCIsImZpcnN0X25hbWUiOiJzb21lX2ZpcnN0X25hbWUiLCJsYXN0X25hbWUiOiJzb21lX2xhc3RfbmFtZSIsImlhdCI6MTc0MjM0NjQ2NywiZXhwIjoxNzQyMzY0NDY3fQ.4EgQYf7VfvdZgooJhnpi9GoMr4ZACFJAqhHHdVoePfs`,
+    token: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpheXJhdXQiLCJ1c2VyX2lkIjoiYzZjMjNkZDUtNWM3Ni00NDI4LTk3Y2QtNGI2YTNiYmRhMmMxIiwiZmlyc3RfbmFtZSI6InNvbWVfZmlyc3RfbmFtZSIsImxhc3RfbmFtZSI6InNvbWVfbGFzdF9uYW1lIiwiaWF0IjoxNzQyMzQ3MzE3LCJleHAiOjE3NDIzNjUzMTd9.SZhWk7o1AWPVDEhRcQFaIE_21gG3vKoEk7j1NSfELvE`,
   },
 });
 

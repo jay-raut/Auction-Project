@@ -209,7 +209,6 @@ const pool = new Pool({
 const kafka = new Kafka({ clientId: `auction-service-client-${server_port}`, brokers: [`${process.env.kafka_address}:${process.env.kafka_port}`] });
 const consumer = kafka.consumer({
   groupId: "auction-consumers",
-  groupInstanceId: `auction-service-${server_port}`,
   sessionTimeout: 30000,
   heartbeatInterval: 10000,
   maxPollInterval: 300000,
