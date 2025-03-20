@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Clock, User } from "lucide-react";
+import { Clock } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useAuction } from "@/Context/AuctionContext";
 
 type AuctionItem = {
   id: number;
@@ -13,13 +13,12 @@ type AuctionItem = {
   description: string;
   currentPrice: number;
   minBidIncrement: number;
-  highestBidder: string;
   shippingPrice: number;
 };
 
 export default function Forward() {
   const { id } = useParams();
-
+  const { socket } = useAuction();
   const [auctionItem, setAuctionItem] = useState<AuctionItem | null>(null);
   const [endTime, setEndTime] = useState<Date | null>(null);
   const [remainingTime, setRemainingTime] = useState<string>("");
@@ -45,7 +44,6 @@ export default function Forward() {
           name: auction.item_name,
           description: auction.item_description,
           minBidIncrement: 100,
-          highestBidder: "null",
           shippingPrice: 0,
           currentPrice: auction.current_bid,
         });
@@ -56,8 +54,33 @@ export default function Forward() {
 
     if (id) {
       getAuctionById(id);
+      socket?.emit("subscribe", id); // Subscribe to the auction updates
     }
-  }, [id]);
+  }, [id, socket]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    // Handle price update (no user data required)
+    const handleBidUpdate = (newBid: number) => {
+      console.log(newBid);
+      setAuctionItem((prevItem) => {
+        if (prevItem && newBid.bid > prevItem.currentPrice) {
+          return {
+            ...prevItem,
+            currentPrice: newBid.bid,
+          };
+        }
+        return prevItem;
+      });
+    };
+
+    socket.on("auction.bid", handleBidUpdate);
+
+    return () => {
+      socket.off("auction.bid", handleBidUpdate);
+    };
+  }, [socket]);
 
   // Countdown Timer
   useEffect(() => {

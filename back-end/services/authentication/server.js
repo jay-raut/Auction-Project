@@ -74,7 +74,6 @@ app.post("/login", async (req, res) => {
     const login_user = await auth_functions.login(user, pool);
     if (login_user.status == 200) {
       res.cookie("token", login_user.token, {
-        httpOnly: true,
         sameSite: "strict",
         maxAge: 5 * 60 * 60 * 1000,
       });
