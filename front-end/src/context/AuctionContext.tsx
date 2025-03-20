@@ -14,23 +14,31 @@ export const AuctionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const userLoggedIn = localStorage.getItem("isAuthenticated");
-    if (userLoggedIn === "true") {
-      setIsAuthenticated(true);
-    } else {
-      setIsAuthenticated(false);
+    async function check_token() {
+      const userLoggedIn = await fetch("http://localhost:3000/api/authentication/profile", {
+        method: "GET",
+        credentials: "include",
+      });
+      if (userLoggedIn.ok) {
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+      }
     }
-  });
+    check_token();
+  }, []);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      return;
-    }
+    if (!isAuthenticated) return;
     const get_socket = initializeSocket();
     setSocket(get_socket);
+
+    return () => {
+      get_socket.disconnect(); 
+    };
   }, [isAuthenticated]);
 
-  return <AuctionContext.Provider value={{ socket , isAuthenticated}}>{children}</AuctionContext.Provider>;
+  return <AuctionContext.Provider value={{ socket, isAuthenticated }}>{children}</AuctionContext.Provider>;
 };
 
 export const useAuction = () => {

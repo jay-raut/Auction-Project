@@ -9,9 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Clock, Search } from "lucide-react";
 import { toast } from "sonner";
+import { useAuction } from "@/Context/AuctionContext";
 
 async function get_all_auctions() {
-  
   const response = await fetch("http://localhost:3000/api/auction/all", {
     method: "GET",
   });
@@ -53,14 +53,10 @@ async function get_all_auctions() {
   toast("Could not auctions");
 }
 
-
-
 const auctionItems = await get_all_auctions();
 
-
-
 export default function Catalogue() {
-  const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem("isAuthenticated") === "true");
+  const { isAuthenticated } = useAuction();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
 

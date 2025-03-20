@@ -69,7 +69,6 @@ app.post("/login", async (req, res) => {
     username,
     password,
   };
-
   try {
     const login_user = await auth_functions.login(user, pool);
     if (login_user.status == 200) {
@@ -82,6 +81,24 @@ app.post("/login", async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).json({ message: "Could not login check username or password" });
+  }
+});
+
+app.get("/profile", async (req, res) => {
+  const { token } = req.cookies;
+
+  if (!token) {
+    return res.status(400).json({ message: "No token provided" });
+  }
+  try {
+    const verify = await auth_functions.verify(token);
+    if (verify.status == 200) {
+      return res.status(200).json({ message: verify.message, user: verify.user });
+    }
+    return res.status(verify.status).json({ message: verify.message });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ message: "Could not verify user" });
   }
 });
 

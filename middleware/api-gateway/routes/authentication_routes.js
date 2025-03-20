@@ -66,4 +66,12 @@ router.get(
     changeOrigin: true,
   })
 );
+
+router.get(
+  "/profile",
+  createProxyMiddleware({
+    target: `http://${process.env.auth_service_address}`,
+    changeOrigin: true,
+  })
+);
 module.exports = router;
