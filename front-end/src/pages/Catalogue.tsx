@@ -8,8 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Clock, Search } from "lucide-react";
+import { toast } from "sonner";
 
 async function get_all_auctions() {
+  
   const response = await fetch("http://localhost:3000/api/auction/all", {
     method: "GET",
   });
@@ -48,6 +50,7 @@ async function get_all_auctions() {
     });
     return formattedData;
   }
+  toast("Could not auctions");
 }
 
 

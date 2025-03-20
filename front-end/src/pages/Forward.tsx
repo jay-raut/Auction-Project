@@ -1,111 +1,90 @@
-import { useState, useEffect } from "react"
-import { useParams, useNavigate } from "react-router-dom"
-import { toast } from "sonner"
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form"
-import { Separator } from "@/components/ui/separator"
-import { Badge } from "@/components/ui/badge"
-import { Clock, ArrowUp, User } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { toast } from "sonner";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Clock, User } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
-// Mock data for a forward auction item
-const auctionItem = {
-  id: 1,
-  name: "Vintage Rolex Submariner",
-  description:
-    "A classic timepiece in excellent condition. This vintage Rolex Submariner features a black dial with luminous hour markers and a date function. The watch comes with its original box and papers, confirming its authenticity and provenance. The stainless steel case and bracelet show minimal signs of wear, making this a collector's piece in remarkable condition for its age.",
-  currentPrice: 5250,
-  minBidIncrement: 100,
-  highestBidder: "user123",
-  shippingPrice: 75,
-  remainingTime: "2:15:30",
-  image: "/placeholder.svg?height=400&width=600",
-}
-
-const bidSchema = z.object({
-  bidAmount: z.string().refine(
-    (val) => {
-      const num = Number.parseFloat(val)
-      return !isNaN(num) && num >= auctionItem.currentPrice + auctionItem.minBidIncrement
-    },
-    {
-      message: `Bid must be at least $${auctionItem.currentPrice + auctionItem.minBidIncrement}`,
-    },
-  ),
-})
-
-type BidFormValues = z.infer<typeof bidSchema>
+type AuctionItem = {
+  id: number;
+  name: string;
+  description: string;
+  currentPrice: number;
+  minBidIncrement: number;
+  highestBidder: string;
+  shippingPrice: number;
+};
 
 export default function Forward() {
-  const { id } = useParams()
-  const navigate = useNavigate()
-  const [currentPrice, setCurrentPrice] = useState(auctionItem.currentPrice)
-  const [highestBidder, setHighestBidder] = useState(auctionItem.highestBidder)
-  const [remainingTime, setRemainingTime] = useState(auctionItem.remainingTime)
-  const [auctionEnded, setAuctionEnded] = useState(false)
+  const { id } = useParams();
 
-  const form = useForm<BidFormValues>({
-    resolver: zodResolver(bidSchema),
-    defaultValues: {
-      bidAmount: "",
-    },
-  })
+  const [auctionItem, setAuctionItem] = useState<AuctionItem | null>(null);
+  const [endTime, setEndTime] = useState<Date | null>(null);
+  const [remainingTime, setRemainingTime] = useState<string>("");
+  const [auctionEnded, setAuctionEnded] = useState(false);
 
-  // Simulate countdown timer
+  // Fetch auction details
   useEffect(() => {
-    if (auctionEnded) return
+    async function getAuctionById(id: string) {
+      try {
+        const response = await fetch(`http://localhost:3000/api/auction/${id}`);
+        if (!response.ok) {
+          throw new Error("Could not fetch auction data");
+        }
 
-    const timer = setInterval(() => {
-      // Parse the time string (HH:MM:SS)
-      const [hours, minutes, seconds] = remainingTime.split(":").map(Number)
+        const data = await response.json();
+        const auction = data.auction;
 
-      let totalSeconds = hours * 3600 + minutes * 60 + seconds
-      totalSeconds -= 1
+        const auctionEndTime = new Date(auction.end_time);
+        setEndTime(auctionEndTime);
 
-      if (totalSeconds <= 0) {
-        clearInterval(timer)
-        setAuctionEnded(true)
-        toast.info("Auction has ended!")
-        return
+        setAuctionItem({
+          id: auction.auction_id,
+          name: auction.item_name,
+          description: auction.item_description,
+          minBidIncrement: 100,
+          highestBidder: "null",
+          shippingPrice: 0,
+          currentPrice: auction.current_bid,
+        });
+      } catch (error) {
+        toast.error("Failed to fetch auction");
       }
-
-      const newHours = Math.floor(totalSeconds / 3600)
-      const newMinutes = Math.floor((totalSeconds % 3600) / 60)
-      const newSeconds = totalSeconds % 60
-
-      setRemainingTime(
-        `${newHours}:${newMinutes.toString().padStart(2, "0")}:${newSeconds.toString().padStart(2, "0")}`,
-      )
-    }, 1000)
-
-    return () => clearInterval(timer)
-  }, [remainingTime, auctionEnded])
-
-  const onSubmit = (data: BidFormValues) => {
-    if (auctionEnded) {
-      toast.error("Auction has ended. No more bids can be placed.")
-      return
     }
 
-    const bidAmount = Number.parseFloat(data.bidAmount)
+    if (id) {
+      getAuctionById(id);
+    }
+  }, [id]);
 
-    // In a real app, this would call your bid API
-    console.log("Placing bid:", bidAmount)
+  // Countdown Timer
+  useEffect(() => {
+    if (!endTime) return;
 
-    // Simulate successful bid
-    setCurrentPrice(bidAmount)
-    setHighestBidder("yourUsername") // In a real app, this would be the current user's username
-    toast.success(`Bid of $${bidAmount.toLocaleString()} placed successfully!`)
-    form.reset()
-  }
+    const timer = setInterval(() => {
+      const now = new Date();
+      const remaining = Math.max((endTime.getTime() - now.getTime()) / 1000, 0);
 
-  const handleAuctionEnd = () => {
-    navigate(`/auction-ended/${id}`)
+      if (remaining <= 0) {
+        clearInterval(timer);
+        setAuctionEnded(true);
+        toast.info("Auction has ended!");
+        setRemainingTime("0:00:00");
+      } else {
+        const hours = Math.floor(remaining / 3600);
+        const minutes = Math.floor((remaining % 3600) / 60);
+        const seconds = Math.floor(remaining % 60);
+        setRemainingTime(`${hours}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`);
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [endTime]);
+
+  if (!auctionItem) {
+    return <p>Loading auction...</p>;
   }
 
   return (
@@ -113,7 +92,7 @@ export default function Forward() {
       <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
         <div className="space-y-6">
           <div className="overflow-hidden rounded-lg border">
-            <img src={auctionItem.image || "/placeholder.svg"} alt={auctionItem.name} className="w-full object-cover" />
+            <img src={"/placeholder.svg"} alt={auctionItem.name} className="w-full object-cover" />
           </div>
 
           <div>
@@ -138,82 +117,21 @@ export default function Forward() {
                   </Badge>
                 )}
               </div>
-
               <div className="space-y-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Current bid</p>
-                  <p className="text-3xl font-bold">${currentPrice.toLocaleString()}</p>
+                  <p className="text-3xl font-bold">${auctionItem.currentPrice.toLocaleString()}</p>
                 </div>
-
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-muted-foreground" />
-                  <p className="text-sm">
-                    Highest bidder: <span className="font-medium">{highestBidder}</span>
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-sm text-muted-foreground">Shipping</p>
-                  <p className="font-medium">${auctionItem.shippingPrice.toLocaleString()}</p>
-                </div>
-
-                <Separator />
-
                 {auctionEnded ? (
-                  <div className="space-y-4">
-                    <Alert>
-                      <AlertDescription>
-                        This auction has ended. The highest bidder can proceed to payment.
-                      </AlertDescription>
-                    </Alert>
-
-                    <Button className="w-full" onClick={handleAuctionEnd} disabled={highestBidder !== "yourUsername"}>
-                      {highestBidder === "yourUsername" ? "Proceed to Payment" : "Auction Ended"}
-                    </Button>
-                  </div>
-                ) : (
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                      <FormField
-                        control={form.control}
-                        name="bidAmount"
-                        render={({ field }) => (
-                          <FormItem>
-                            <div className="flex items-center gap-2">
-                              <FormControl>
-                                <div className="relative">
-                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                                    $
-                                  </span>
-                                  <Input
-                                    {...field}
-                                    type="number"
-                                    className="pl-7"
-                                    placeholder={`${currentPrice + auctionItem.minBidIncrement}`}
-                                  />
-                                </div>
-                              </FormControl>
-                              <Button type="submit" disabled={form.formState.isSubmitting}>
-                                <ArrowUp className="h-4 w-4 mr-2" />
-                                Bid
-                              </Button>
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <p className="text-xs text-muted-foreground">
-                        Minimum bid increment: ${auctionItem.minBidIncrement}
-                      </p>
-                    </form>
-                  </Form>
-                )}
+                  <Alert>
+                    <AlertDescription>This auction has ended. The highest bidder can proceed to payment.</AlertDescription>
+                  </Alert>
+                ) : null}
               </div>
             </CardContent>
           </Card>
         </div>
       </div>
     </div>
-  )
+  );
 }
