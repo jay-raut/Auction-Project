@@ -1,51 +1,105 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useParams, useNavigate } from "react-router-dom"
-import { toast } from "sonner"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import { Badge } from "@/components/ui/badge"
-import { AlertCircle } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useAuction } from "@/Context/AuctionContext";
 
-// Mock data for a Dutch auction item
-const auctionItem = {
-  id: 3,
-  name: "Antique Wooden Desk",
-  description:
-    "19th century mahogany writing desk with intricate carvings and original brass hardware. This exquisite piece features three drawers with the original handles, a leather writing surface, and secret compartments typical of fine furniture from this period. The desk has been professionally restored to preserve its historical integrity while ensuring it remains functional for modern use.",
-  currentPrice: 3500,
-  shippingPrice: 150,
-  image: "/placeholder.svg?height=400&width=600",
-}
-
+type AuctionItem = {
+  id: number;
+  name: string;
+  description: string;
+  currentPrice: number;
+  minBidIncrement: number;
+  shippingPrice: number;
+};
 export default function Dutch() {
-  const { id } = useParams()
-  const navigate = useNavigate()
-  const [auctionEnded, setAuctionEnded] = useState(false)
+  const { id } = useParams();
+  const { socket } = useAuction();
+  const navigate = useNavigate();
+  const [auctionItem, setAuctionItem] = useState<AuctionItem | null>(null);
+  const [auctionEnded, setAuctionEnded] = useState(false);
+
+  // Fetch auction details
+  useEffect(() => {
+    async function getAuctionById(id: string) {
+      try {
+        const response = await fetch(`http://localhost:3000/api/auction/${id}`);
+        if (!response.ok) {
+          throw new Error("Could not fetch auction data");
+        }
+
+        const data = await response.json();
+        const auction = data.auction;
+
+        setAuctionItem({
+          id: auction.auction_id,
+          name: auction.item_name,
+          description: auction.item_description,
+          minBidIncrement: 100,
+          shippingPrice: 0,
+          currentPrice: auction.current_bid,
+        });
+      } catch (error) {
+        toast.error("Failed to fetch auction");
+      }
+    }
+
+    if (id) {
+      getAuctionById(id);
+      socket?.emit("subscribe", id); // Subscribe to the auction updates
+    }
+  }, [id, socket]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    // Handle price update (no user data required)
+    const handleBidUpdate = (newBid: number) => {
+      setAuctionItem((prevItem) => {
+        if (prevItem && newBid.bid < prevItem.currentPrice) {
+          return {
+            ...prevItem,
+            currentPrice: newBid.bid,
+          };
+        }
+        return prevItem;
+      });
+    };
+
+    socket.on("auction.bid", handleBidUpdate);
+
+    return () => {
+      socket.off("auction.bid", handleBidUpdate);
+    };
+  }, [socket]);
 
   const handleBuyNow = () => {
     // In a real app, this would call your buy now API
-    console.log("Buying now at:", auctionItem.currentPrice)
+    console.log("Buying now at:", auctionItem.currentPrice);
 
-    setAuctionEnded(true)
-    toast.success("Purchase successful! Proceed to payment.")
-  }
+    setAuctionEnded(true);
+    toast.success("Purchase successful! Proceed to payment.");
+  };
 
   const handleProceedToPayment = () => {
-    navigate(`/auction-ended/${id}`)
+    navigate(`/auction-ended/${id}`);
+  };
+
+  if (!auctionItem) {
+    return <p>Loading auction...</p>;
   }
 
   return (
     <div className="container py-10">
       <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
         <div className="space-y-6">
-          <div className="overflow-hidden rounded-lg border">
-            <img src={auctionItem.image || "/placeholder.svg"} alt={auctionItem.name} className="w-full object-cover" />
-          </div>
-
           <div>
             <h2 className="text-2xl font-bold">{auctionItem.name}</h2>
             <p className="mt-2 text-muted-foreground">{auctionItem.description}</p>
@@ -72,20 +126,13 @@ export default function Dutch() {
                   <p className="text-3xl font-bold">${auctionItem.currentPrice.toLocaleString()}</p>
                 </div>
 
-                <div>
-                  <p className="text-sm text-muted-foreground">Shipping</p>
-                  <p className="font-medium">${auctionItem.shippingPrice.toLocaleString()}</p>
-                </div>
-
                 <Separator />
 
                 {auctionEnded ? (
                   <div className="space-y-4">
                     <Alert>
                       <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>
-                        You've successfully purchased this item! Proceed to payment to complete your order.
-                      </AlertDescription>
+                      <AlertDescription>You've successfully purchased this item! Proceed to payment to complete your order.</AlertDescription>
                     </Alert>
 
                     <Button className="w-full" onClick={handleProceedToPayment}>
@@ -94,10 +141,7 @@ export default function Dutch() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <p className="text-sm">
-                      In a Dutch auction, the price is fixed. Click "Buy Now" to purchase the item immediately and end
-                      the auction.
-                    </p>
+                    <p className="text-sm">In a Dutch auction, the price is fixed. Click "Buy Now" to purchase the item immediately and end the auction.</p>
 
                     <Button className="w-full" onClick={handleBuyNow}>
                       Buy Now
@@ -110,6 +154,5 @@ export default function Dutch() {
         </div>
       </div>
     </div>
-  )
+  );
 }
-
