@@ -21,6 +21,7 @@ type AuctionItem = {
 };
 export default function Dutch() {
   const { id } = useParams();
+  let order_id: any;
   const { socket } = useAuction();
   const navigate = useNavigate();
   const [auctionItem, setAuctionItem] = useState<AuctionItem | null>(null);
@@ -74,23 +75,41 @@ export default function Dutch() {
       });
     };
 
+    const await_order = (order: any) => {
+      order_id = order.order_id;
+    };
+
     socket.on("auction.bid", handleBidUpdate);
+    socket.on("order.ready", await_order);
 
     return () => {
       socket.off("auction.bid", handleBidUpdate);
     };
   }, [socket]);
 
-  const handleBuyNow = () => {
+  const handleBuyNow = async () => {
     // In a real app, this would call your buy now API
     console.log("Buying now at:", auctionItem.currentPrice);
 
-    setAuctionEnded(true);
-    toast.success("Purchase successful! Proceed to payment.");
+    try {
+      const response = await fetch(`http://localhost:3000/api/auction//buy-now/${id}`, {
+        method: "POST",
+        credentials: "include",
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setAuctionEnded(true);
+        toast.success("Purchase successful! Proceed to payment.");
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error("Could not buy dutch auction ");
+    }
   };
 
   const handleProceedToPayment = () => {
-    navigate(`/auction-ended/${id}`);
+    navigate(`/auction-ended/${order_id}`);
   };
 
   if (!auctionItem) {

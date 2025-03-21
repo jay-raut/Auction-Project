@@ -13,7 +13,12 @@ async function create_order(auction_details, pool_connection) {
     }
     await client.query("BEGIN");
     const create_order_query = "INSERT INTO orders (auction_id, user_winner_id, user_seller_id,final_price) VALUES ($1, $2, $3, $4) RETURNING *";
-    const query_result = await client.query(create_order_query, [auction_details.auction.auction_id, auction_details.user, auction_details.auction.auction_owner, auction_details.winning_amount]);
+    const query_result = await client.query(create_order_query, [
+      auction_details.auction.auction_id,
+      auction_details.user,
+      auction_details.auction.auction_owner,
+      Number(auction_details.winning_amount) + Number(auction_details.auction.shipping_cost),
+    ]);
     await client.query("COMMIT");
     return { order: query_result.rows[0] };
   } catch (error) {
@@ -92,8 +97,8 @@ async function pay_order(order_id, user_id, transaction_info, pool_connection) {
       return { status: 401, message: "This order does not belong to you" };
     }
 
-    if (get_order.status != "pending"){
-      return {status: 400, message: `This order is already ${get_order.status}`}
+    if (get_order.status != "pending") {
+      return { status: 400, message: `This order is already ${get_order.status}` };
     }
     const check_existing_transaction = await client.query("SELECT * from transactions WHERE order_id = $1", [order_id]);
     if (check_existing_transaction.rows.length != 0) {

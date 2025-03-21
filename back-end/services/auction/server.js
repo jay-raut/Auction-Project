@@ -62,8 +62,8 @@ app.post("/create", async (req, res) => {
     return res.status(401).json({ messsage: "Missing session token" });
   }
 
-  const { item_name, item_description, auction_type, start_time, starting_amount } = req.body; //an auction must have minimum these variables in the request
-  const fields = [item_name, item_description, auction_type, start_time, starting_amount];
+  const { item_name, item_description, auction_type, start_time, starting_amount, shipping_cost } = req.body; //an auction must have minimum these variables in the request
+  const fields = [item_name, item_description, auction_type, start_time, starting_amount, shipping_cost];
   if (fields.some((value) => !value)) {
     return res.status(400).json({ error: `Missing or undefined field` });
   }
@@ -174,7 +174,7 @@ app.post("/buy-now/:id", async (req, res) => {
       return res.status(verify_result.status).json({ message: "Could not verify session. Log in again" });
     }
     const buy_now = await auction_functions.buy_now(auction_id, verify_result.user, pool, redis_client, producer);
-    if ((buy_now.status == 200)) {
+    if (buy_now.status == 200) {
       return res.status(200).json({ message: buy_now.message });
     }
     return res.status(buy_now.status).json({ message: buy_now.message });
