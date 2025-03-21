@@ -44,8 +44,8 @@ export default function Forward() {
           name: auction.item_name,
           description: auction.item_description,
           minBidIncrement: 100,
-          shippingPrice: 0,
-          currentPrice: auction.current_bid,
+          shippingPrice: auction.shipping_cost,
+          currentPrice: auction?.current_bid || auction.starting_amount,
         });
       } catch (error) {
         toast.error("Failed to fetch auction");
@@ -145,6 +145,10 @@ export default function Forward() {
                 <div>
                   <p className="text-sm text-muted-foreground">Current bid</p>
                   <p className="text-3xl font-bold">${auctionItem.currentPrice.toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Shipping</p>
+                  <p className="font-medium">${auctionItem.shippingPrice.toLocaleString()}</p>
                 </div>
                 {auctionEnded ? (
                   <Alert>

@@ -21,7 +21,7 @@ type AuctionItem = {
 };
 export default function Dutch() {
   const { id } = useParams();
-  let order_id: any;
+  const [order, setOrder] = useState(null);
   const { socket } = useAuction();
   const navigate = useNavigate();
   const [auctionItem, setAuctionItem] = useState<AuctionItem | null>(null);
@@ -44,8 +44,8 @@ export default function Dutch() {
           name: auction.item_name,
           description: auction.item_description,
           minBidIncrement: 100,
-          shippingPrice: 0,
-          currentPrice: auction.current_bid,
+          shippingPrice: auction.shipping_cost,
+          currentPrice: auction?.current_bid || auction.starting_amount,
         });
       } catch (error) {
         toast.error("Failed to fetch auction");
@@ -75,8 +75,8 @@ export default function Dutch() {
       });
     };
 
-    const await_order = (order: any) => {
-      order_id = order.order_id;
+    const await_order = (created_order: any) => {
+      setOrder(created_order);
     };
 
     socket.on("auction.bid", handleBidUpdate);
@@ -109,7 +109,11 @@ export default function Dutch() {
   };
 
   const handleProceedToPayment = () => {
-    navigate(`/auction-ended/${order_id}`);
+    if (!order) {
+      return;
+    }
+    console.log(order);
+    navigate(`/auction-ended/${order.order.order_id}`);
   };
 
   if (!auctionItem) {
@@ -145,7 +149,10 @@ export default function Dutch() {
                   <p className="text-sm text-muted-foreground">Current price</p>
                   <p className="text-3xl font-bold">${auctionItem.currentPrice.toLocaleString()}</p>
                 </div>
-
+                <div>
+                  <p className="text-sm text-muted-foreground">Shipping</p>
+                  <p className="font-medium">${auctionItem.shippingPrice.toLocaleString()}</p>
+                </div>
                 <Separator />
 
                 {auctionEnded ? (
