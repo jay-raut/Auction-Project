@@ -57,7 +57,9 @@ export default function Login() {
       if (login_status.ok) {
         localStorage.setItem("isAuthenticated", "true");
         toast.success("Successfully logged in");
-        navigate("/", { replace: true });
+        
+        navigate("/");
+        window.location.reload();
       } else {
         setError("Could not login check username or password");
         console.log(`Could not login ${await login_status.json()}`);

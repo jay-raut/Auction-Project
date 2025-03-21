@@ -21,8 +21,10 @@ function App() {
 }
 
 const AuthenticatedApp = () => {
-  const { isAuthenticated } = useAuction();
-
+  const { isAuthenticated, isAuthLoading } = useAuction();
+  if (isAuthLoading) {
+    return <></>;
+  }
   return (
     <BrowserRouter>
       <Routes>

@@ -80,7 +80,8 @@ export default function Signup() {
         // Mock successful signup
         localStorage.setItem("isAuthenticated", "true");
         toast.success("Account created successfully");
-        navigate("/", { replace: true });
+        navigate("/");
+        window.location.reload();
       } else {
         const errorData = await sign_up_status.json();
         setError(errorData.message || "Signup failed");

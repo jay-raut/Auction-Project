@@ -7,14 +7,25 @@ import { useAuction } from "@/Context/AuctionContext";
 
 export default function Layout() {
   const navigate = useNavigate();
-  // Mock authentication state - in a real app, this would come from your auth context
   const { isAuthenticated } = useAuction();
 
-  const handleLogout = () => {
-    // In a real app, this would call your logout API
+  const handleLogout = async () => {
     localStorage.removeItem("isAuthenticated");
-    toast.success("Logged out successfully");
-    navigate("/", { replace: true });
+    try {
+      const response = await fetch("http://localhost:3000/api/authentication/logout", {
+        method: "POST",
+        credentials: "include", 
+      });
+      if (response.ok) {
+        toast.success("Logged out successfully");
+        navigate("/", { replace: true });
+        window.location.reload();
+      } else {
+        toast.error("Could not log out");
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (

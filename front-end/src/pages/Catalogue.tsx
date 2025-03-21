@@ -22,7 +22,7 @@ async function get_all_auctions() {
         id: auction.auction_id,
         name: auction.item_name,
         description: auction.item_description,
-        currentPrice: auction.starting_amount,
+        currentPrice: auction?.current_bid || auction.starting_amount,
         type: auction.auction_type,
         is_active: auction.is_active,
       };
@@ -56,10 +56,24 @@ async function get_all_auctions() {
 const auctionItems = await get_all_auctions();
 
 export default function Catalogue() {
-  const { isAuthenticated } = useAuction();
+  const { isAuthenticated, socket } = useAuction();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
+  const [forceUpdate, setForceUpdate] = useState(0);
 
+  const rerender = () => {
+    setForceUpdate(forceUpdate + 1);
+  };
+
+  socket?.emit("subscribe", "all");
+  socket?.on("auction.bid", (bid) => {
+    const update_auction = auctionItems.find((auction) => auction.id === bid.auction_id);
+
+    if (update_auction) {
+      update_auction.currentPrice = bid.bid;
+      rerender();
+    }
+  });
   const filteredItems = auctionItems.filter((item) => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
 
@@ -118,9 +132,18 @@ export default function Catalogue() {
                     <p className="text-sm text-muted-foreground line-clamp-2 h-10">{item.description}</p>
                     <div className="mt-2 flex justify-between items-center">
                       <div>
-                        <p className="text-sm text-muted-foreground">Current bid</p>
-                        <p className="font-semibold">${item.currentPrice.toLocaleString()}</p>
+                        {item.is_active ? (
+                          <>
+                            <p className="text-sm text-muted-foreground">Current bid</p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-sm text-muted-foreground">Started At</p>
+                          </>
+                        )}
+                        <p className="font-semibold">${item.currentPrice || "N/A"}</p>
                       </div>
+
                       {item.type === "forward_auction" && (
                         <div className="flex items-center text-sm text-muted-foreground">
                           <Clock className="h-3.5 w-3.5 mr-1" />

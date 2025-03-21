@@ -1,21 +1,16 @@
 import io, { Socket } from "socket.io-client";
-import Cookies from "js-cookie";
-
 const socketEndpoint = "http://localhost:3000";
 let socket: Socket | null = null;
 
 export function initializeSocket(): Socket {
   if (!socket) {
-    const token = Cookies.get("token");
-    console.log(token)
     socket = io(socketEndpoint, {
       path: "/api/notification/socket",
       transports: ["websocket"],
       reconnection: true,
-      auth: {
-        token,
-      },
+      withCredentials: true,
     });
+    
 
     socket.on("connect", () => {
       console.log("Socket connected");

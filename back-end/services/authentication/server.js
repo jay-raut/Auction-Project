@@ -74,6 +74,7 @@ app.post("/login", async (req, res) => {
     if (login_user.status == 200) {
       res.cookie("token", login_user.token, {
         sameSite: "strict",
+        httpOnly: "true",
         maxAge: 5 * 60 * 60 * 1000,
       });
     }
@@ -83,6 +84,14 @@ app.post("/login", async (req, res) => {
     return res.status(400).json({ message: "Could not login check username or password" });
   }
 });
+
+app.post("/logout", (req, res) => {
+  res.clearCookie("token", { httpOnly: true, path: "/" });
+  res.status(200).send({ message: "Logged out successfully" });
+});
+
+
+
 
 app.get("/profile", async (req, res) => {
   const { token } = req.cookies;

@@ -74,4 +74,12 @@ router.get(
     changeOrigin: true,
   })
 );
+
+router.post(
+  "/logout",
+  createProxyMiddleware({
+    target: `http://${process.env.auth_service_address}`,
+    changeOrigin: true,
+  })
+);
 module.exports = router;
