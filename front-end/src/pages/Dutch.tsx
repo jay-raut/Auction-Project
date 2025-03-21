@@ -54,6 +54,7 @@ export default function Dutch() {
     if (id) {
       getAuctionById(id);
       socket?.emit("subscribe", id); // Subscribe to the auction updates
+      socket?.emit("unsubscribe", "all");
     }
   }, [id, socket]);
 

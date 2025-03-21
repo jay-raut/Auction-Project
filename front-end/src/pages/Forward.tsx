@@ -54,6 +54,7 @@ export default function Forward() {
 
     if (id) {
       getAuctionById(id);
+      socket?.emit("unsubscribe", "all");
       socket?.emit("subscribe", id); // Subscribe to the auction updates
     }
   }, [id, socket]);

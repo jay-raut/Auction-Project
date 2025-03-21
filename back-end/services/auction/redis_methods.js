@@ -66,12 +66,14 @@ async function bid_dutch(redis_client, auction_id, bid_amount, user) {
   if (auction.auction_owner !== user.user_id) {
     return { status: 403, message: "Only the auction owner can reduce the price" };
   }
-  if (bid_amount > auction.starting_amount) {
-    return { status: 400, message: `Bid amount must be less ${auction.starting_amount}` };
-  }
 
   const bids_key = `bids:${auction_id}`;
   const lowest_bid = await redis_client.zRangeWithScores(bids_key, 0, 0);
+
+  
+  if (lowest_bid.length <= 0 && bid_amount > auction.starting_amount) {
+    return { status: 400, message: `Bid amount must be less ${auction.starting_amount}` };
+  }
 
   if (lowest_bid.length > 0 && bid_amount >= lowest_bid[0].score) {
     return { status: 400, message: `Your bid must be lower than the current lowest bid of ${lowest_bid[0].score}` };
@@ -88,10 +90,6 @@ async function bid_forward(redis_client, auction_id, bid_amount, user) {
   const auction_key = `auction:${auction_id}`;
   const auction = await redis_client.hGetAll(auction_key);
 
-  if (bid_amount <= auction.starting_amount) {
-    return { status: 400, message: `Bid amount must be greater than ${auction.starting_amount}` };
-  }
-
   const now = Date.now();
   if (new Date(auction.end_time).getTime() < now) {
     return { status: 400, message: `Bidding is finished on this auction` };
@@ -100,6 +98,10 @@ async function bid_forward(redis_client, auction_id, bid_amount, user) {
   const bids_key = `bids:${auction_id}`;
 
   const highest_bid = await redis_client.zRangeWithScores(bids_key, -1, -1);
+
+  if (highest_bid.length <= 0 && bid_amount <= auction.starting_amount) {
+    return { status: 400, message: `Bid amount must be greater than ${auction.starting_amount}` };
+  }
 
   if (highest_bid.length > 0 && bid_amount <= highest_bid[0].score) {
     return { status: 400, message: `Your bid must be higher than the current highest bid of ${highest_bid[0].score}` };
