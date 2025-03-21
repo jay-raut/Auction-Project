@@ -12,12 +12,14 @@ async function create_order(auction_details, pool_connection) {
       return;
     }
     await client.query("BEGIN");
-    const create_order_query = "INSERT INTO orders (auction_id, user_winner_id, user_seller_id,final_price) VALUES ($1, $2, $3, $4) RETURNING *";
+    const create_order_query = "INSERT INTO orders (auction_id, user_winner_id, user_seller_id,final_price, shipping_price, expedited_shipping_cost) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *";
     const query_result = await client.query(create_order_query, [
       auction_details.auction.auction_id,
       auction_details.user,
       auction_details.auction.auction_owner,
-      Number(auction_details.winning_amount) + Number(auction_details.auction.shipping_cost),
+      Number(auction_details.winning_amount),
+      auction_details.auction.shipping_cost,
+      auction_details.auction.expedited_shipping_cost,
     ]);
     await client.query("COMMIT");
     return { order: query_result.rows[0] };
@@ -114,11 +116,15 @@ async function pay_order(order_id, user_id, transaction_info, pool_connection) {
         return { status: 400, message: "This order has already been completed or is pending" };
       }
     }
-    const { payment_details, shipping_address, billing_address } = transaction_info;
+    const { choosen_expedited_shipping, payment_details, shipping_address, billing_address } = transaction_info;
+
+    console.log("choosen expediated shipping " + choosen_expedited_shipping);
+    const final_price = Number(get_order.final_price) + Number(get_order.shipping_price) + Number(choosen_expedited_shipping ? get_order.expedited_shipping_cost : 0);
+    console.log(final_price);
 
     await client.query("BEGIN");
     const insert_transaction = "INSERT INTO transactions (order_id, amount, transaction_type, payment_method, shipping_address, billing_address) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *";
-    await client.query(insert_transaction, [order_id, get_order.final_price, "payment", payment_details, shipping_address, billing_address]);
+    await client.query(insert_transaction, [order_id, final_price, "payment", payment_details, shipping_address, billing_address]);
     await client.query("COMMIT");
     return { status: 200, message: "Payment completed" };
   } catch (error) {

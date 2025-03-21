@@ -71,7 +71,9 @@ CREATE TABLE public.orders (
     user_seller_id uuid NOT NULL,
     final_price numeric(10,2) NOT NULL,
     status public.order_status DEFAULT 'pending'::public.order_status NOT NULL,
-    created_at timestamp without time zone DEFAULT now()
+    created_at timestamp without time zone DEFAULT now(),
+    shipping_price numeric(10, 2) DEFAULT 0 NOT NULL,
+	expedited_shipping_cost numeric(10, 2) DEFAULT 0 NOT NULL
 );
 
 

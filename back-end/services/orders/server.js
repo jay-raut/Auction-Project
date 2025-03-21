@@ -87,6 +87,14 @@ app.post("/submit-payment/:id", async (req, res) => {
     return res.status(401).json({ messsage: "Missing session token" });
   }
 
+  if (req.body.choosen_expedited_shipping == null || req.body.choosen_expedited_shipping === "") {
+    return res.status(400).json({ message: "Missing expedited shipping option" });
+  }
+
+  if (typeof req.body.choosen_expedited_shipping !== "boolean") {
+    return res.status(400).json({ message: "Expedited shipping option must be boolean" });
+  }
+
   const requiredFields = {
     payment_details: ["card_number", "name_on_card", "expiration_date"],
     shipping_address: ["street_address", "street_number", "city", "zip_code", "country"],

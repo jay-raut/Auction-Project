@@ -49,6 +49,7 @@ export default function AuctionEnded() {
         const data = await response.json();
         setOrder(data.order);
         getAuctionById(data.order.auction_id);
+        console.log(data.order)
       } catch (error) {
         toast.error("Failed to fetch order");
       }
@@ -60,6 +61,7 @@ export default function AuctionEnded() {
         if (!response.ok) throw new Error("Could not fetch auction data");
         const data = await response.json();
         setAuction(data.auction);
+        console.log(data.auction)
       } catch (error) {
         toast.error("Failed to fetch auction");
       }
@@ -73,7 +75,7 @@ export default function AuctionEnded() {
   // Check if the logged-in user is the auction winner
   const isWinner = user.user_id === order.user_winner_id;
 
-  const totalShippingCost = expeditedShipping ? parseFloat(auction.shipping_cost) + 10 : parseFloat(auction.shipping_cost);
+  const totalShippingCost = expeditedShipping ? parseFloat(auction.shipping_cost) + parseFloat(auction.expedited_shipping_cost) : parseFloat(auction.shipping_cost);
   const totalPrice = parseFloat(order.final_price) + totalShippingCost;
 
   const handlePayNow = () => {
@@ -137,7 +139,7 @@ export default function AuctionEnded() {
                       <Switch id="expedited-shipping" checked={expeditedShipping} onCheckedChange={setExpeditedShipping} />
                       <div className="grid gap-1.5">
                         <Label htmlFor="expedited-shipping" className="font-medium">
-                          Expedited shipping (+$10)
+                          Expedited shipping +${(auction.expedited_shipping_cost)}
                         </Label>
                         <p className="text-xs text-muted-foreground flex items-center">
                           <Truck className="h-3 w-3 mr-1" />
