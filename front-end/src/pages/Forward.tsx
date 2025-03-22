@@ -76,7 +76,12 @@ export default function Forward() {
       });
     };
 
+    const handleOrderReady = (order: any) => {
+      console.log(order);
+    };
+
     socket.on("auction.bid", handleBidUpdate);
+    socket.on("order.ready", handleOrderReady);
 
     return () => {
       socket.off("auction.bid", handleBidUpdate);

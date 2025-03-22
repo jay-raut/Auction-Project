@@ -39,10 +39,11 @@ async function stop_forward_auction(auction, pool_connection, redis_client, prod
       //there is a winner
       user = JSON.parse(highestBid[0].value).user;
       const bid_amount = highestBid[0].score;
-      await client.query("UPDATE auctions SET auction_winner = $1 WHERE auction_id = $2", [user, auction.auction_id]);
+      const get_auction = await client.query("UPDATE auctions SET auction_winner = $1 WHERE auction_id = $2 RETURNING *", [user, auction.auction_id]);
+      console.log(get_auction);
       await producer.send({
         topic: "order.create",
-        messages: [{ value: JSON.stringify({ event_type: "order.create", user: user, winning_amount: bid_amount, auction: auction }) }],
+        messages: [{ value: JSON.stringify({ event_type: "order.create", user: user, winning_amount: bid_amount, auction: get_auction.rows[0] }) }],
       });
     }
     await producer.send({
