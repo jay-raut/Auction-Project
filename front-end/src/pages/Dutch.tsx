@@ -62,7 +62,6 @@ export default function Dutch() {
   useEffect(() => {
     if (!socket) return;
 
-    // Handle price update (no user data required)
     const handleBidUpdate = (newBid: number) => {
       setAuctionItem((prevItem) => {
         if (prevItem && newBid.bid < prevItem.currentPrice) {
@@ -79,11 +78,18 @@ export default function Dutch() {
       setOrder(created_order);
     };
 
+    const handleAuctionEnded = () => {
+      setAuctionEnded(true);
+    };
+
     socket.on("auction.bid", handleBidUpdate);
     socket.on("order.ready", await_order);
+    socket.on("auction.ended", handleAuctionEnded);
 
     return () => {
       socket.off("auction.bid", handleBidUpdate);
+      socket.off("order.ready", await_order);
+      socket.off("auction.ended", handleAuctionEnded);
     };
   }, [socket]);
 

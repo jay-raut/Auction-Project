@@ -92,7 +92,8 @@ CREATE TABLE public.transactions (
     payment_method json NOT NULL,
     created_at timestamp without time zone DEFAULT now(),
     shipping_address json NOT NULL,
-    billing_address json NOT NULL
+    billing_address json NOT NULL,
+    cost_breakdown json NOT NULL
 );
 
 

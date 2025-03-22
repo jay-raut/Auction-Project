@@ -50,11 +50,10 @@ export default function Receipt() {
   const paymentMethod = transaction?.payment_method;
   const shippingAddress = transaction?.shipping_address;
   const billingAddress = transaction?.billing_address;
+  const cost_breakdown = transaction?.cost_breakdown;
 
-  const totalShippingCost = expeditedShipping ? parseFloat(order.shipping_price) + parseFloat(order.expedited_shipping_cost) : parseFloat(order.shipping_price);
-
-  const totalPrice = parseFloat(order.final_price) + totalShippingCost;
-  const shippingDays = expeditedShipping ? auctionItem.expeditedShippingDays : auctionItem.shippingDays;
+  const totalPrice = parseFloat(transaction.amount);
+  const shippingDays = 5;
 
   return (
     <div className="container max-w-4xl py-10">
@@ -153,11 +152,23 @@ export default function Receipt() {
                 <span>Subtotal:</span>
                 <span>${parseFloat(order.final_price).toLocaleString()}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span>Shipping:</span>
-                <span>${totalShippingCost.toLocaleString()}</span>
-              </div>
+
+              {cost_breakdown.shipping_cost > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span>Shipping:</span>
+                  <span>${cost_breakdown.shipping_cost}</span>
+                </div>
+              )}
+
+              {cost_breakdown.expedited_shipping_cost > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span>Expedited Shipping:</span>
+                  <span>${cost_breakdown.expedited_shipping_cost}</span>
+                </div>
+              )}
+
               <Separator className="my-2" />
+
               <div className="flex justify-between font-medium">
                 <span>Total:</span>
                 <span>${totalPrice.toLocaleString()}</span>

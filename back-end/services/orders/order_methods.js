@@ -122,10 +122,16 @@ async function pay_order(order_id, user_id, transaction_info, pool_connection) {
     console.log("choosen expediated shipping " + choosen_expedited_shipping);
     const final_price = Number(get_order.final_price) + Number(get_order.shipping_price) + Number(choosen_expedited_shipping ? get_order.expedited_shipping_cost : 0);
     console.log(final_price);
+    const cost_breakdown = {
+      final_price: Number(get_order.final_price),
+      shipping_cost: Number(get_order.shipping_price),
+      expedited_shipping_cost: choosen_expedited_shipping ? Number(get_order.expedited_shipping_cost) : 0,
+      total_amount: final_price,
+    };
 
     await client.query("BEGIN");
-    const insert_transaction = "INSERT INTO transactions (order_id, amount, transaction_type, payment_method, shipping_address, billing_address) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *";
-    await client.query(insert_transaction, [order_id, final_price, "payment", payment_details, shipping_address, billing_address]);
+    const insert_transaction = "INSERT INTO transactions (order_id, amount, transaction_type, payment_method, shipping_address, billing_address, cost_breakdown) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *";
+    await client.query(insert_transaction, [order_id, final_price, "payment", payment_details, shipping_address, billing_address, cost_breakdown]);
     await client.query("COMMIT");
     return { status: 200, message: "Payment completed" };
   } catch (error) {
