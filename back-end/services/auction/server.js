@@ -62,9 +62,11 @@ app.post("/create", async (req, res) => {
     return res.status(401).json({ messsage: "Missing session token" });
   }
 
-  const { item_name, item_description, auction_type, start_time, starting_amount, shipping_cost, expedited_shipping_cost } = req.body; //an auction must have minimum these variables in the request
+  const { item_name, item_description, auction_type, start_time, starting_amount, shipping_cost, expedited_shipping_cost } = req.body;
+
   const fields = [item_name, item_description, auction_type, start_time, starting_amount, shipping_cost, expedited_shipping_cost];
-  if (fields.some((value) => !value)) {
+
+  if (fields.some((value) => value === undefined || value === null)) {
     return res.status(400).json({ error: `Missing or undefined field` });
   }
 
