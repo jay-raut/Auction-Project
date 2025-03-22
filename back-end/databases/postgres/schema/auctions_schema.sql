@@ -46,7 +46,8 @@ CREATE TABLE public.auctions (
     auction_type public.auction_type_enum NOT NULL,
     is_active boolean DEFAULT false NOT NULL,
     starting_amount numeric NOT NULL,
-    shipping_cost numeric DEFAULT 0 NOT NULL
+    shipping_cost numeric DEFAULT 0 NOT NULL,
+    expedited_shipping_cost numeric DEFAULT 0 NOT NULL
 );
 
 
