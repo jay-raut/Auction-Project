@@ -41,7 +41,8 @@ app.get("/all", async (req, res) => {
     const get_auctions = await auction_functions.get_all_auctions(pool, redis_client);
     return res.status(200).json({ message: "Got all auctions", auctions: get_auctions.auctions });
   } catch (error) {
-    return res.status(400).json({ messag: "Could not get all auctions" });
+    console.log(error);
+    return res.status(400).json({ message: "Could not get all auctions" });
   }
 });
 
