@@ -1,48 +1,60 @@
-import { useParams, useSearchParams } from "react-router-dom"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import { Badge } from "@/components/ui/badge"
-import { Check, Download, Printer, Truck } from "lucide-react"
-
-// Mock user data
-const userData = {
-  firstName: "John",
-  lastName: "Doe",
-  streetName: "Main Street",
-  streetNumber: "123",
-  city: "New York",
-  country: "United States",
-  postalCode: "10001",
-}
-
-// Mock auction data
-const auctionItem = {
-  id: 1,
-  name: "Vintage Rolex Submariner",
-  winningPrice: 5750,
-  shippingPrice: 75,
-  expeditedShippingPrice: 50,
-  shippingDays: 5,
-  expeditedShippingDays: 2,
-  orderNumber: "ORD-" + Math.floor(100000 + Math.random() * 900000),
-  paymentDate: new Date().toLocaleDateString(),
-  image: "/placeholder.svg?height=200&width=300",
-}
+import { useParams, useSearchParams } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Check, Download, Printer, Truck } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function Receipt() {
-  const { id } = useParams()
-  const [searchParams] = useSearchParams()
+  const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const [order, setOrder] = useState(null);
+  const [auctionItem, setAuctionItem] = useState(null);
+  const expeditedShipping = searchParams.get("expedited") === "true";
 
-  const expeditedShipping = searchParams.get("expedited") === "true"
+  useEffect(() => {
+    async function getOrder() {
+      try {
+        const response = await fetch(`http://localhost:3000/api/payment/get/${id}`, {
+          method: "GET",
+          credentials: "include",
+        });
+        if (!response.ok) throw new Error("Could not fetch order data");
+        const data = await response.json();
+        setOrder(data.order);
+        getAuctionById(data.order.auction_id);
+      } catch (error) {
+        toast.error("Failed to fetch order");
+      }
+    }
 
-  const totalShippingCost = expeditedShipping
-    ? auctionItem.shippingPrice + auctionItem.expeditedShippingPrice
-    : auctionItem.shippingPrice
+    async function getAuctionById(auctionId) {
+      try {
+        const response = await fetch(`http://localhost:3000/api/auction/${auctionId}`);
+        if (!response.ok) throw new Error("Could not fetch auction data");
+        const data = await response.json();
+        setAuctionItem(data.auction);
+      } catch (error) {
+        toast.error("Failed to fetch auction");
+      }
+    }
 
-  const totalPrice = auctionItem.winningPrice + totalShippingCost
+    getOrder();
+  }, [id]);
 
-  const shippingDays = expeditedShipping ? auctionItem.expeditedShippingDays : auctionItem.shippingDays
+  if (!order || !auctionItem) return <p>Loading...</p>;
+
+  const transaction = order.transactions?.[0];
+  const paymentMethod = transaction?.payment_method;
+  const shippingAddress = transaction?.shipping_address;
+  const billingAddress = transaction?.billing_address;
+
+  const totalShippingCost = expeditedShipping ? parseFloat(order.shipping_price) + parseFloat(order.expedited_shipping_cost) : parseFloat(order.shipping_price);
+
+  const totalPrice = parseFloat(order.final_price) + totalShippingCost;
+  const shippingDays = expeditedShipping ? auctionItem.expeditedShippingDays : auctionItem.shippingDays;
 
   return (
     <div className="container max-w-4xl py-10">
@@ -66,7 +78,7 @@ export default function Receipt() {
       <Card className="mb-6">
         <CardHeader className="bg-primary/5 border-b">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-            <CardTitle>Order #{auctionItem.orderNumber}</CardTitle>
+            <CardTitle>Order #{order.order_id}</CardTitle>
             <Badge className="mt-2 sm:mt-0 w-fit">
               <Check className="mr-1 h-3 w-3" />
               Payment Successful
@@ -79,30 +91,42 @@ export default function Receipt() {
               <h3 className="font-medium mb-2">Order Details</h3>
               <div className="text-sm space-y-1">
                 <p>
-                  <span className="text-muted-foreground">Order Date:</span> {auctionItem.paymentDate}
+                  <span className="text-muted-foreground">Order Date:</span> {new Date(order.created_at).toLocaleDateString()}
                 </p>
                 <p>
-                  <span className="text-muted-foreground">Order Number:</span> {auctionItem.orderNumber}
+                  <span className="text-muted-foreground">Order Number:</span> {order.order_id}
                 </p>
                 <p>
-                  <span className="text-muted-foreground">Payment Method:</span> Credit Card (****1234)
+                  <span className="text-muted-foreground">Payment Method:</span> Credit Card (****{paymentMethod?.card_number.slice(-4)})
                 </p>
               </div>
             </div>
 
             <div>
-              <h3 className="font-medium mb-2">Shipping Address</h3>
-              <div className="text-sm text-muted-foreground">
-                <p>
-                  {userData.firstName} {userData.lastName}
-                </p>
-                <p>
-                  {userData.streetNumber} {userData.streetName}
-                </p>
-                <p>
-                  {userData.city}, {userData.postalCode}
-                </p>
-                <p>{userData.country}</p>
+              <div>
+                <h3 className="font-medium mb-2">Shipping Address</h3>
+                <div className="text-sm text-muted-foreground">
+                  <p>
+                    {shippingAddress.street_number} {shippingAddress.street_address}
+                  </p>
+                  <p>
+                    {shippingAddress.city}, {shippingAddress.zip_code}
+                  </p>
+                  <p>{shippingAddress.country}</p>
+                </div>
+              </div>
+
+              <div className="mt-5">
+                <h3 className="font-medium mb-2">Billing Address</h3>
+                <div className="text-sm text-muted-foreground">
+                  <p>
+                    {billingAddress.street_number} {billingAddress.street_address}
+                  </p>
+                  <p>
+                    {billingAddress.city}, {billingAddress.zip_code}
+                  </p>
+                  <p>{billingAddress.country}</p>
+                </div>
               </div>
             </div>
           </div>
@@ -111,20 +135,13 @@ export default function Receipt() {
 
           <div className="space-y-6">
             <div className="flex items-start gap-4">
-              <div className="h-20 w-20 overflow-hidden rounded-md border flex-shrink-0">
-                <img
-                  src={auctionItem.image || "/placeholder.svg"}
-                  alt={auctionItem.name}
-                  className="h-full w-full object-cover"
-                />
-              </div>
               <div className="flex-1">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <h3 className="font-medium">{auctionItem.name}</h3>
+                    <h3 className="font-medium">{auctionItem.item_name}</h3>
                     <p className="text-sm text-muted-foreground">Auction #{id}</p>
                   </div>
-                  <p className="font-medium mt-1 sm:mt-0">${auctionItem.winningPrice.toLocaleString()}</p>
+                  <p className="font-medium mt-1 sm:mt-0">${parseFloat(order.final_price).toLocaleString()}</p>
                 </div>
               </div>
             </div>
@@ -134,7 +151,7 @@ export default function Receipt() {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>Subtotal:</span>
-                <span>${auctionItem.winningPrice.toLocaleString()}</span>
+                <span>${parseFloat(order.final_price).toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span>Shipping:</span>
@@ -165,16 +182,8 @@ export default function Receipt() {
               </p>
             </div>
           </div>
-
-          <div className="mt-6 text-sm text-muted-foreground">
-            <p>
-              You will receive a shipping confirmation email with tracking information once your item has been shipped.
-              If you have any questions about your order, please contact our customer support.
-            </p>
-          </div>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-

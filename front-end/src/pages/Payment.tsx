@@ -244,6 +244,7 @@ export default function Payment() {
         const message = await response.json();
         throw new Error("Failed to process payment: " + message.message);
       }
+      navigate(`/receipt/${id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Payment processing failed");
     }

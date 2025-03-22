@@ -58,12 +58,13 @@ async function get_order_by_id(order_id, user_id, pool_connection) {
       return { status: 404, message: "Order not found" };
     }
 
-    const get_order = query_result.rows[0];
+    let get_order = query_result.rows[0];
     if (get_order.user_winner_id != user_id) {
       //check if the user is allowed to see this order
       return { status: 401, message: "This order does not belong to you" };
     }
-
+    const query_order_transactions = await client.query("SELECT * from transactions WHERE order_id = $1", [order_id]);
+    get_order = { transactions: query_order_transactions.rows, ...get_order };
     return { status: 200, message: "Order found", order: get_order };
   } catch (error) {
     throw error;
