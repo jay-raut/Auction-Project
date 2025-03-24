@@ -1,13 +1,13 @@
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Gavel, LogOut, ShoppingBag, User } from "lucide-react";
+import { Gavel, LogOut, ShoppingBag, User, ShoppingCart } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { useAuction } from "@/Context/AuctionContext";
 
 export default function Layout() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuction();
+  const { isAuthenticated, user } = useAuction();
 
   const handleLogout = async () => {
     localStorage.removeItem("isAuthenticated");
@@ -26,6 +26,11 @@ export default function Layout() {
     } catch (error) {
       console.log(error);
     }
+  };
+
+  const handleOrders = async () => {
+    navigate("/orders", { replace: true });
+    window.location.reload();
   };
 
   return (
@@ -57,9 +62,20 @@ export default function Layout() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  <div className="p-4">
+                    <p className="font-semibold text-sm">
+                      {user.first_name} {user.last_name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{user.username}</p>
+                    <p className="text-xs text-muted-foreground">ID:{user.user_id}</p>
+                  </div>
                   <DropdownMenuItem onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleOrders}>
+                    <ShoppingCart className="mr-2 h-4 w-4" />
+                    <span>My Orders</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

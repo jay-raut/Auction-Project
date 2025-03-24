@@ -9,6 +9,7 @@ import Dutch from "./pages/Dutch";
 import AuctionEnded from "./pages/AuctionEnded";
 import Payment from "./pages/Payment";
 import Receipt from "./pages/Receipt";
+import Orders from "./pages/Orders";
 import { Toaster } from "sonner";
 import { AuctionProvider, useAuction } from "./Context/AuctionContext";
 
@@ -31,6 +32,7 @@ const AuthenticatedApp = () => {
         <Route path="/" element={<Layout />}>
           <Route index element={<Catalogue />} />
           <Route path="/login" element={isAuthenticated ? <Catalogue /> : <Login />} />
+          <Route path="/orders" element={isAuthenticated ? <Orders /> : <Login />} />
           <Route path="/signup" element={isAuthenticated ? <Catalogue /> : <Signup />} />
           <Route path="/landing" element={<Landing />} />
           <Route path="/catalogue" element={isAuthenticated ? <Catalogue /> : <Landing />} />
