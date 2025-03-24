@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock } from "lucide-react";
+import { AlertCircle, Clock } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuction } from "@/Context/AuctionContext";
 import { Button } from "@/components/ui/button";
@@ -20,12 +20,15 @@ type AuctionItem = {
 
 export default function Forward() {
   const { id } = useParams();
-  const { socket } = useAuction();
+  const { socket, user } = useAuction();
   const [auctionItem, setAuctionItem] = useState<AuctionItem | null>(null);
+  const navigate = useNavigate();
   const [endTime, setEndTime] = useState<Date | null>(null);
   const [remainingTime, setRemainingTime] = useState<string>("");
   const [auctionEnded, setAuctionEnded] = useState(false);
   const [bidAmount, setBidAmount] = useState("");
+  const [order, setOrder] = useState(null);
+  const [isWinner, setIsWinner] = useState(false);
 
   useEffect(() => {
     async function getAuctionById(id: string) {
@@ -61,6 +64,13 @@ export default function Forward() {
     }
   }, [id, socket]);
 
+  const handleProceedToPayment = () => {
+    if (!order) {
+      return;
+    }
+    navigate(`/auction-ended/${order.order.order_id}`);
+  };
+
   useEffect(() => {
     if (!socket) return;
 
@@ -76,10 +86,26 @@ export default function Forward() {
       });
     };
 
+    const handleAuctionEnded = (auction: any) => {
+      console.log(auction);
+      if (auction.winner === user.user_id) {
+        setIsWinner(true);
+        setAuctionEnded(true);
+      }
+    };
+
+    const await_order = (created_order: any) => {
+      setOrder(created_order);
+    };
+
     socket.on("auction.bid", handleBidUpdate);
+    socket.on("auction.ended", handleAuctionEnded);
+    socket.on("order.ready", await_order);
 
     return () => {
       socket.off("auction.bid", handleBidUpdate);
+      socket.off("auction.ended", handleAuctionEnded);
+      socket.off("order.ready", await_order);
     };
   }, [socket]);
 
@@ -120,7 +146,7 @@ export default function Forward() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bid: bidValue }),
-        credentials:"include"
+        credentials: "include",
       });
 
       if (!response.ok) {
@@ -174,11 +200,21 @@ export default function Forward() {
                 </div>
               )}
 
-              {auctionEnded && (
-                <Alert>
-                  <AlertDescription>This auction has ended. The highest bidder can proceed to payment.</AlertDescription>
-                </Alert>
-              )}
+              {auctionEnded &&
+                (isWinner ? (
+                  <Button className="w-full" onClick={handleProceedToPayment}>
+                    Proceed to Payment
+                  </Button>
+                ) : order ? (
+                  <Button className="w-full" onClick={handleProceedToPayment}>
+                    Proceed to Payment
+                  </Button>
+                ) : (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>This auction has ended.</AlertDescription>
+                  </Alert>
+                ))}
             </div>
           </CardContent>
         </Card>

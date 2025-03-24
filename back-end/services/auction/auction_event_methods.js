@@ -31,6 +31,7 @@ async function stop_auction(auction, pool_connection, redis_client, producer) {
 async function stop_forward_auction(auction, pool_connection, redis_client, producer) {
   //sets is_active in postgres to false, marks has_ended on redis, and creates a order async, the winner is the last bid if any
   const client = await pool_connection.connect();
+  auction.winner = null;
   console.log(auction);
   try {
     const highestBid = await redis_client.zRangeWithScores(`bids:${auction.auction_id}`, -1, -1);
@@ -38,6 +39,7 @@ async function stop_forward_auction(auction, pool_connection, redis_client, prod
     if (highestBid.length != 0) {
       //there is a winner
       user = JSON.parse(highestBid[0].value).user;
+      auction.winner = user;
       const bid_amount = highestBid[0].score;
       const get_auction = await client.query("UPDATE auctions SET auction_winner = $1 WHERE auction_id = $2 RETURNING *", [user, auction.auction_id]);
       console.log(get_auction);
