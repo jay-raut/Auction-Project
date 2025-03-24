@@ -138,7 +138,7 @@ export default function Receipt() {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <h3 className="font-medium">{auctionItem.item_name}</h3>
-                    <p className="text-sm text-muted-foreground">Auction #{id}</p>
+                    <p className="text-sm text-muted-foreground">Auction #{auctionItem.auction_id}</p>
                   </div>
                   <p className="font-medium mt-1 sm:mt-0">${parseFloat(order.final_price).toLocaleString()}</p>
                 </div>

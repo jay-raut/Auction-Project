@@ -77,7 +77,14 @@ async function get_all_orders(user_id, pool_connection) {
   const client = await pool_connection.connect();
   try {
     const query_result = await client.query("SELECT * from orders WHERE user_winner_id = $1", [user_id]);
-    return { status: 200, message: "Order found", orders: query_result.rows };
+    const populate_transactions = await Promise.all(
+      query_result.rows.map(async (order) => {
+        const transactions = await client.query("SELECT * from transactions WHERE order_id = $1", [order.order_id]);
+        order.transactions = transactions.rows;
+        return order;
+      })
+    );
+    return { status: 200, message: "Order found", orders: populate_transactions };
   } catch (error) {
     throw error;
   } finally {
@@ -130,9 +137,9 @@ async function pay_order(order_id, user_id, transaction_info, pool_connection) {
     };
 
     await client.query("BEGIN");
-    const insert_transaction = "INSERT INTO transactions (order_id, amount, transaction_type, payment_method, shipping_address, billing_address, cost_breakdown) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *";
+    const insert_transaction =
+      "INSERT INTO transactions (order_id, amount, transaction_type, payment_method, shipping_address, billing_address, cost_breakdown) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *";
     await client.query(insert_transaction, [order_id, final_price, "payment", payment_details, shipping_address, billing_address, cost_breakdown]);
-
 
     const mark_order_complete = "UPDATE orders SET status = 'completed' WHERE order_id = $1"; //maunually marking the order as complete for demo purposes however, a transaction request should be handled as a async job
     await client.query(mark_order_complete, [order_id]);
