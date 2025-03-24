@@ -5,6 +5,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle } from "lucide-react";
@@ -18,16 +19,20 @@ type AuctionItem = {
   currentPrice: number;
   minBidIncrement: number;
   shippingPrice: number;
+  ownerId: string;
+  isActive: boolean;
 };
+
 export default function Dutch() {
   const { id } = useParams();
   const [order, setOrder] = useState(null);
-  const { socket } = useAuction();
+  const { socket, user } = useAuction();
   const navigate = useNavigate();
   const [auctionItem, setAuctionItem] = useState<AuctionItem | null>(null);
   const [auctionEnded, setAuctionEnded] = useState(false);
+  const [isWinner, setIsWinner] = useState(false);
+  const [priceReduction, setPriceReduction] = useState(0);
 
-  // Fetch auction details
   useEffect(() => {
     async function getAuctionById(id: string) {
       try {
@@ -46,6 +51,8 @@ export default function Dutch() {
           minBidIncrement: 100,
           shippingPrice: auction.shipping_cost,
           currentPrice: auction?.current_bid || auction.starting_amount,
+          ownerId: auction.auction_owner,
+          isActive: auction.is_active, // Include is_active field
         });
       } catch (error) {
         toast.error("Failed to fetch auction");
@@ -54,7 +61,7 @@ export default function Dutch() {
 
     if (id) {
       getAuctionById(id);
-      socket?.emit("subscribe", id); // Subscribe to the auction updates
+      socket?.emit("subscribe", id);
       socket?.emit("unsubscribe", "all");
     }
   }, [id, socket]);
@@ -94,23 +101,21 @@ export default function Dutch() {
   }, [socket]);
 
   const handleBuyNow = async () => {
-    // In a real app, this would call your buy now API
-    console.log("Buying now at:", auctionItem.currentPrice);
-
     try {
-      const response = await fetch(`http://localhost:3000/api/auction//buy-now/${id}`, {
+      const response = await fetch(`http://localhost:3000/api/auction/buy-now/${id}`, {
         method: "POST",
         credentials: "include",
       });
       const data = await response.json();
       if (response.ok) {
         setAuctionEnded(true);
+        setIsWinner(true);
         toast.success("Purchase successful! Proceed to payment.");
       } else {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.error("Could not buy dutch auction ");
+      toast.error("Could not buy dutch auction");
     }
   };
 
@@ -118,8 +123,31 @@ export default function Dutch() {
     if (!order) {
       return;
     }
-    console.log(order);
     navigate(`/auction-ended/${order.order.order_id}`);
+  };
+
+  const handleReducePrice = async () => {
+    if (!priceReduction || priceReduction <= 0) {
+      toast.error("Enter a valid price reduction amount.");
+      return;
+    }
+    try {
+      const response = await fetch(`http://localhost:3000/api/auction/bid/${id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bid: priceReduction }),
+        credentials: "include",
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setAuctionItem((prevItem) => (prevItem ? { ...prevItem, currentPrice: priceReduction } : prevItem));
+        toast.success("Price reduced successfully.");
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error("Could not reduce price.");
+    }
   };
 
   if (!auctionItem) {
@@ -143,43 +171,49 @@ export default function Dutch() {
                 <Badge variant="secondary" className="px-3 py-1 text-sm">
                   Dutch Auction
                 </Badge>
-                {auctionEnded && (
-                  <Badge variant="destructive" className="px-3 py-1 text-sm">
-                    Auction Ended
-                  </Badge>
-                )}
               </div>
-
+              {auctionEnded && (
+                <Badge variant="destructive" className="px-3 py-1 text-sm">
+                  Auction Ended
+                </Badge>
+              )}
               <div className="space-y-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Current price</p>
-                  <p className="text-3xl font-bold">${auctionItem.currentPrice.toLocaleString()}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Shipping</p>
-                  <p className="font-medium">${auctionItem.shippingPrice.toLocaleString()}</p>
-                </div>
+                <p className="text-sm text-muted-foreground">Current price</p>
+                <p className="text-3xl font-bold">${auctionItem.currentPrice.toLocaleString()}</p>
                 <Separator />
 
-                {auctionEnded ? (
-                  <div className="space-y-4">
-                    <Alert>
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>You've successfully purchased this item! Proceed to payment to complete your order.</AlertDescription>
-                    </Alert>
-
+                {!auctionItem.isActive ? (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>This auction has ended.</AlertDescription>
+                  </Alert>
+                ) : auctionEnded ? (
+                  isWinner ? (
                     <Button className="w-full" onClick={handleProceedToPayment}>
                       Proceed to Payment
                     </Button>
-                  </div>
+                  ) : order ? (
+                    <Button className="w-full" onClick={handleProceedToPayment}>
+                      Proceed to Payment
+                    </Button>
+                  ) : (
+                    <Alert variant="destructive">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>This auction has ended.</AlertDescription>
+                    </Alert>
+                  )
                 ) : (
-                  <div className="space-y-4">
-                    <p className="text-sm">In a Dutch auction, the price is fixed. Click "Buy Now" to purchase the item immediately and end the auction.</p>
-
+                  <>
                     <Button className="w-full" onClick={handleBuyNow}>
                       Buy Now
                     </Button>
-                  </div>
+                    {user?.user_id === auctionItem.ownerId && (
+                      <div className="flex space-x-2">
+                        <Input type="number" value={priceReduction} onChange={(e) => setPriceReduction(Number(e.target.value))} placeholder="Enter reduction" />
+                        <Button onClick={handleReducePrice}>Reduce Price</Button>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </CardContent>

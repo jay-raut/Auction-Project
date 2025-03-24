@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Clock } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuction } from "@/Context/AuctionContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 type AuctionItem = {
   id: number;
@@ -23,8 +25,8 @@ export default function Forward() {
   const [endTime, setEndTime] = useState<Date | null>(null);
   const [remainingTime, setRemainingTime] = useState<string>("");
   const [auctionEnded, setAuctionEnded] = useState(false);
+  const [bidAmount, setBidAmount] = useState("");
 
-  // Fetch auction details
   useEffect(() => {
     async function getAuctionById(id: string) {
       try {
@@ -55,16 +57,14 @@ export default function Forward() {
     if (id) {
       getAuctionById(id);
       socket?.emit("unsubscribe", "all");
-      socket?.emit("subscribe", id); // Subscribe to the auction updates
+      socket?.emit("subscribe", id);
     }
   }, [id, socket]);
 
   useEffect(() => {
     if (!socket) return;
 
-    // Handle price update (no user data required)
     const handleBidUpdate = (newBid: number) => {
-      console.log(newBid);
       setAuctionItem((prevItem) => {
         if (prevItem && newBid.bid > prevItem.currentPrice) {
           return {
@@ -76,19 +76,13 @@ export default function Forward() {
       });
     };
 
-    const handleOrderReady = (order: any) => {
-      console.log(order);
-    };
-
     socket.on("auction.bid", handleBidUpdate);
-    socket.on("order.ready", handleOrderReady);
 
     return () => {
       socket.off("auction.bid", handleBidUpdate);
     };
   }, [socket]);
 
-  // Countdown Timer
   useEffect(() => {
     if (!endTime) return;
 
@@ -112,6 +106,34 @@ export default function Forward() {
     return () => clearInterval(timer);
   }, [endTime]);
 
+  const placeBid = async () => {
+    if (!auctionItem) return;
+    const bidValue = parseFloat(bidAmount);
+
+    if (isNaN(bidValue) || bidValue <= auctionItem.currentPrice) {
+      toast.error("Bid must be higher than the current price!");
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:3000/api/auction/bid/${id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bid: bidValue }),
+        credentials:"include"
+      });
+
+      if (!response.ok) {
+        throw new Error("Bid failed");
+      }
+
+      toast.success("Bid placed successfully!");
+      setBidAmount("");
+    } catch (error) {
+      toast.error("Failed to place bid");
+    }
+  };
+
   if (!auctionItem) {
     return <p>Loading auction...</p>;
   }
@@ -120,50 +142,46 @@ export default function Forward() {
     <div className="container py-10">
       <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
         <div className="space-y-6">
-          <div className="overflow-hidden rounded-lg border">
-            <img src={"/placeholder.svg"} alt={auctionItem.name} className="w-full object-cover" />
-          </div>
-
-          <div>
-            <h2 className="text-2xl font-bold">{auctionItem.name}</h2>
-            <p className="mt-2 text-muted-foreground">{auctionItem.description}</p>
-          </div>
+          <h2 className="text-2xl font-bold">{auctionItem.name}</h2>
+          <p className="text-muted-foreground">{auctionItem.description}</p>
         </div>
 
-        <div>
-          <Card>
-            <CardContent className="p-6 space-y-6">
-              <div className="flex justify-between items-center">
-                <Badge className="px-3 py-1 text-sm">Forward Auction</Badge>
-                {!auctionEnded ? (
-                  <div className="flex items-center text-sm font-medium">
-                    <Clock className="h-4 w-4 mr-1" />
-                    <span>{remainingTime}</span>
-                  </div>
-                ) : (
-                  <Badge variant="destructive" className="px-3 py-1 text-sm">
-                    Auction Ended
-                  </Badge>
-                )}
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Current bid</p>
-                  <p className="text-3xl font-bold">${auctionItem.currentPrice.toLocaleString()}</p>
+        <Card>
+          <CardContent className="p-6 space-y-6">
+            <div className="flex justify-between items-center">
+              <Badge className="px-3 py-1 text-sm">Forward Auction</Badge>
+              {!auctionEnded ? (
+                <div className="flex items-center text-sm font-medium">
+                  <Clock className="h-4 w-4 mr-1" />
+                  <span>{remainingTime}</span>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Shipping</p>
-                  <p className="font-medium">${auctionItem.shippingPrice.toLocaleString()}</p>
+              ) : (
+                <Badge variant="destructive" className="px-3 py-1 text-sm">
+                  Auction Ended
+                </Badge>
+              )}
+            </div>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">Current bid</p>
+              <p className="text-3xl font-bold">${auctionItem.currentPrice.toLocaleString()}</p>
+
+              {!auctionEnded && (
+                <div className="space-y-2">
+                  <Input type="number" value={bidAmount} onChange={(e) => setBidAmount(e.target.value)} placeholder="Enter your bid" />
+                  <Button onClick={placeBid} className="w-full">
+                    Place Bid
+                  </Button>
                 </div>
-                {auctionEnded ? (
-                  <Alert>
-                    <AlertDescription>This auction has ended. The highest bidder can proceed to payment.</AlertDescription>
-                  </Alert>
-                ) : null}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              )}
+
+              {auctionEnded && (
+                <Alert>
+                  <AlertDescription>This auction has ended. The highest bidder can proceed to payment.</AlertDescription>
+                </Alert>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

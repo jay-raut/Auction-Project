@@ -58,7 +58,7 @@ const auctionItems = await get_all_auctions();
 export default function Catalogue() {
   const { isAuthenticated, socket } = useAuction();
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState("all");
+  const [activeTab, setActiveTab] = useState("active");
   const [forceUpdate, setForceUpdate] = useState(0);
 
   const rerender = () => {
@@ -102,13 +102,13 @@ export default function Catalogue() {
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input type="search" placeholder="Search items..." className="w-full pl-8" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
-            <Tabs defaultValue="all" className="w-full sm:w-auto" onValueChange={setActiveTab}>
+            <Tabs defaultValue="active" className="w-full sm:w-auto" onValueChange={setActiveTab}>
               <TabsList>
-                <TabsTrigger value="all">All Auctions</TabsTrigger>
                 <TabsTrigger value="active">Active</TabsTrigger>
                 <TabsTrigger value="past">Past</TabsTrigger>
                 <TabsTrigger value="forward_auction">Forward</TabsTrigger>
                 <TabsTrigger value="dutch_auction">Dutch</TabsTrigger>
+                <TabsTrigger value="all">All Auctions</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
