@@ -94,7 +94,7 @@ export default function Signup() {
 
   async function register(data: { username: any; password: any; first_name: any; last_name: any; street_address: any; street_number: any; zip_code: any; city: any; country: any }) {
     console.log(data);
-    const response = await fetch("http://localhost:3000/api/authentication/register", {
+    const response = await fetch("https://localhost:3000/api/authentication/register", {
       method: "POST",
       body: JSON.stringify(data),
       headers: { "Content-Type": "application/json" },

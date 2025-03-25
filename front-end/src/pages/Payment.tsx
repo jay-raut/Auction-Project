@@ -14,10 +14,10 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, CreditCard, Lock } from "lucide-react";
 
-const PAYMENT_API = "http://localhost:3000/api/authentication/payment";
-const ADDRESS_API = "http://localhost:3000/api/authentication/address";
-const CREATE_PAYMENT_API = "http://localhost:3000/api/authentication/create-payment-method";
-const CREATE_ADDRESS_API = "http://localhost:3000/api/authentication/create-address";
+const PAYMENT_API = "https://localhost:3000/api/authentication/payment";
+const ADDRESS_API = "https://localhost:3000/api/authentication/address";
+const CREATE_PAYMENT_API = "https://localhost:3000/api/authentication/create-payment-method";
+const CREATE_ADDRESS_API = "https://localhost:3000/api/authentication/create-address";
 
 const paymentSchema = z.object({
   cardNumber: z
@@ -89,7 +89,7 @@ export default function Payment() {
   useEffect(() => {
     async function getOrder() {
       try {
-        const response = await fetch(`http://localhost:3000/api/payment/get/${id}`, { method: "GET", credentials: "include" });
+        const response = await fetch(`https://localhost:3000/api/payment/get/${id}`, { method: "GET", credentials: "include" });
         if (!response.ok) throw new Error("Could not fetch order data");
         const data = await response.json();
         setOrder(data.order);
@@ -101,7 +101,7 @@ export default function Payment() {
 
     async function getAuctionById(auctionId: string) {
       try {
-        const response = await fetch(`http://localhost:3000/api/auction/${auctionId}`);
+        const response = await fetch(`https://localhost:3000/api/auction/${auctionId}`);
         if (!response.ok) throw new Error("Could not fetch auction data");
         const data = await response.json();
         setAuctionItem(data.auction);
@@ -233,7 +233,7 @@ export default function Payment() {
         },
       };
 
-      const response = await fetch(`http://localhost:3000/api/payment/submit-payment/${id}`, {
+      const response = await fetch(`https://localhost:3000/api/payment/submit-payment/${id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

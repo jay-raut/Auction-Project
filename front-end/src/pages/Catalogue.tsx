@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { useAuction } from "@/Context/AuctionContext";
 
 async function get_all_auctions() {
-  const response = await fetch("http://localhost:3000/api/auction/all", {
+  const response = await fetch("https://localhost:3000/api/auction/all", {
     method: "GET",
   });
   if (response.ok) {

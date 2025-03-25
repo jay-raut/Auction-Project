@@ -33,7 +33,7 @@ export default function Forward() {
   useEffect(() => {
     async function getAuctionById(id: string) {
       try {
-        const response = await fetch(`http://localhost:3000/api/auction/${id}`);
+        const response = await fetch(`https://localhost:3000/api/auction/${id}`);
         if (!response.ok) {
           throw new Error("Could not fetch auction data");
         }
@@ -142,7 +142,7 @@ export default function Forward() {
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/api/auction/bid/${id}`, {
+      const response = await fetch(`https://localhost:3000/api/auction/bid/${id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bid: bidValue }),

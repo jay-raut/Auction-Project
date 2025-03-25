@@ -17,7 +17,7 @@ export default function Receipt() {
   useEffect(() => {
     async function getOrder() {
       try {
-        const response = await fetch(`http://localhost:3000/api/payment/get/${id}`, {
+        const response = await fetch(`https://localhost:3000/api/payment/get/${id}`, {
           method: "GET",
           credentials: "include",
         });
@@ -32,7 +32,7 @@ export default function Receipt() {
 
     async function getAuctionById(auctionId) {
       try {
-        const response = await fetch(`http://localhost:3000/api/auction/${auctionId}`);
+        const response = await fetch(`https://localhost:3000/api/auction/${auctionId}`);
         if (!response.ok) throw new Error("Could not fetch auction data");
         const data = await response.json();
         setAuctionItem(data.auction);

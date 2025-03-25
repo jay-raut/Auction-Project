@@ -19,7 +19,7 @@ export const AuctionProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   useEffect(() => {
     async function check_token() {
-      const userLoggedIn = await fetch("http://localhost:3000/api/authentication/profile", {
+      const userLoggedIn = await fetch("https://localhost:3000/api/authentication/profile", {
         method: "GET",
         credentials: "include",
       });

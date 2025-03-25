@@ -56,7 +56,7 @@ export default function CreateAuction() {
     }
 
     try {
-      const response = await fetch("http://localhost:3000/api/auction/create", {
+      const response = await fetch("https://localhost:3000/api/auction/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
