@@ -105,9 +105,9 @@ export default function Catalogue() {
             <Tabs defaultValue="active" className="w-full sm:w-auto" onValueChange={setActiveTab}>
               <TabsList>
                 <TabsTrigger value="active">Active</TabsTrigger>
-                <TabsTrigger value="past">Past</TabsTrigger>
                 <TabsTrigger value="forward_auction">Forward</TabsTrigger>
                 <TabsTrigger value="dutch_auction">Dutch</TabsTrigger>
+                <TabsTrigger value="past">Past</TabsTrigger>
                 <TabsTrigger value="all">All Auctions</TabsTrigger>
               </TabsList>
             </Tabs>

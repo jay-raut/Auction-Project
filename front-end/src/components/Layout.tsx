@@ -1,6 +1,6 @@
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Gavel, LogOut, ShoppingBag, User, ShoppingCart } from "lucide-react";
+import { Gavel, LogOut, ShoppingBag, User, ShoppingCart, CirclePlus } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { useAuction } from "@/Context/AuctionContext";
@@ -30,7 +30,10 @@ export default function Layout() {
 
   const handleOrders = async () => {
     navigate("/orders", { replace: true });
-    window.location.reload();
+  };
+
+  const handleCreate = async () => {
+    navigate("/create", { replace: true });
   };
 
   return (
@@ -76,6 +79,10 @@ export default function Layout() {
                   <DropdownMenuItem onClick={handleOrders}>
                     <ShoppingCart className="mr-2 h-4 w-4" />
                     <span>My Orders</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleCreate}>
+                    <CirclePlus className="h-5 w-5 mr-2" />
+                    <span>Create an Auction</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
