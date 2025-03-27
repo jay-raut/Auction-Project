@@ -20,7 +20,7 @@ redis_client.on("error", (err) => {
   console.error("Redis connection error:", err);
   if (err.code === "ECONNRESET") {
     console.log("Reconnecting to Redis...");
-    connectRedis();
+    connect_redis();
   }
 });
 connect_redis();
@@ -90,7 +90,7 @@ async function notify_auction_start_stop(event) {
     });
   } catch (error) {
     console.error("Error sending message to Kafka:", error);
-    connectKafka(); // Reconnect Kafka if sending fails
+    connect_kafka(); 
   }
 }
 
