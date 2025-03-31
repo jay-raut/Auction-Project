@@ -25,6 +25,7 @@ async function get_all_auctions() {
         currentPrice: auction?.current_bid || auction.starting_amount,
         type: auction.auction_type,
         is_active: auction.is_active,
+        start_time: auction.start_time,
       };
       if (auction_data.type == "forward_auction") {
         const now = new Date();
@@ -76,13 +77,15 @@ export default function Catalogue() {
   });
   const filteredItems = auctionItems.filter((item) => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
-
+    console.log(item);
     if (activeTab === "all") {
       return matchesSearch;
     } else if (activeTab === "active") {
       return matchesSearch && item.is_active === true;
     } else if (activeTab === "past") {
       return matchesSearch && item.is_active === false;
+    } else if (activeTab === "soon") {
+      return matchesSearch && item.is_active === false && new Date(item.start_time) > new Date();
     }
 
     return item.type === activeTab;
@@ -105,6 +108,7 @@ export default function Catalogue() {
             <Tabs defaultValue="active" className="w-full sm:w-auto" onValueChange={setActiveTab}>
               <TabsList>
                 <TabsTrigger value="active">Active</TabsTrigger>
+                <TabsTrigger value="soon">Starting Soon</TabsTrigger>
                 <TabsTrigger value="forward_auction">Forward</TabsTrigger>
                 <TabsTrigger value="dutch_auction">Dutch</TabsTrigger>
                 <TabsTrigger value="past">Past</TabsTrigger>
@@ -137,17 +141,34 @@ export default function Catalogue() {
                             <p className="text-sm text-muted-foreground">Current bid</p>
                           </>
                         ) : (
-                          <>
-                            <p className="text-sm text-muted-foreground">Started At</p>
-                          </>
+                          !(new Date(item.start_time) > new Date()) && (
+                            <>
+                              <p className="text-sm text-muted-foreground">Started At</p>
+                            </>
+                          )
                         )}
                         <p className="font-semibold">${item.currentPrice || "N/A"}</p>
                       </div>
 
-                      {item.type === "forward_auction" && (
+                      {item.type === "forward_auction" && item.is_active && (
                         <div className="flex items-center text-sm text-muted-foreground">
                           <Clock className="h-3.5 w-3.5 mr-1" />
                           {item.remainingTime}
+                        </div>
+                      )}
+                      {item.is_active !== true && new Date(item.start_time) > new Date() && (
+                        <div className="flex items-center text-sm text-muted-foreground ml-7">
+                          Starts on{" "}
+                          {new Date(item.start_time).toLocaleString("en-US", {
+                            weekday: "long",
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                            hour: "numeric",
+                            minute: "numeric",
+                            second: "numeric",
+                            hour12: true,
+                          })}
                         </div>
                       )}
                     </div>
