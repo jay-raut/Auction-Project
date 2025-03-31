@@ -16,6 +16,10 @@ type AuctionItem = {
   currentPrice: number;
   minBidIncrement: number;
   shippingPrice: number;
+  ownerId: string;
+  isActive: boolean;
+  startTime: string;
+  isFutureAuction: boolean;
 };
 
 export default function Forward() {
@@ -29,6 +33,7 @@ export default function Forward() {
   const [bidAmount, setBidAmount] = useState("");
   const [order, setOrder] = useState(null);
   const [isWinner, setIsWinner] = useState(false);
+  const [timeUntilStart, setTimeUntilStart] = useState<string>("");
 
   useEffect(() => {
     async function getAuctionById(id: string) {
@@ -44,6 +49,9 @@ export default function Forward() {
         const auctionEndTime = new Date(auction.end_time);
         setEndTime(auctionEndTime);
         setAuctionEnded(!auction.is_active);
+        const startTime = new Date(auction.start_time);
+        const now = new Date();
+        const isFutureAuction = !auction.is_active && startTime > now;
         setAuctionItem({
           id: auction.auction_id,
           name: auction.item_name,
@@ -51,7 +59,35 @@ export default function Forward() {
           minBidIncrement: 100,
           shippingPrice: auction.shipping_cost,
           currentPrice: auction?.current_bid || auction.starting_amount,
+          ownerId: auction.auction_owner,
+          isActive: auction.is_active,
+          startTime: auction.start_time,
+          isFutureAuction,
         });
+        if (isFutureAuction) {
+          const updateCountdown = () => {
+            const now = new Date();
+            const diff = startTime.getTime() - now.getTime();
+
+            if (diff <= 0) {
+              clearInterval(interval);
+              setAuctionEnded(false);
+              setAuctionItem((prev) => (prev ? { ...prev, isActive: true, isFutureAuction: false } : null));
+              return;
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            setTimeUntilStart(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+          };
+
+          updateCountdown();
+          const interval = setInterval(updateCountdown, 1000);
+          return () => clearInterval(interval);
+        }
       } catch (error) {
         toast.error("Failed to fetch auction");
       }
@@ -176,10 +212,16 @@ export default function Forward() {
           <CardContent className="p-6 space-y-6">
             <div className="flex justify-between items-center">
               <Badge className="px-3 py-1 text-sm">Forward Auction</Badge>
-              {!auctionEnded ? (
+
+              {auctionItem.isFutureAuction ? (
                 <div className="flex items-center text-sm font-medium">
                   <Clock className="h-4 w-4 mr-1" />
-                  <span>{remainingTime}</span>
+                  <span>Starts in: {timeUntilStart}</span>
+                </div>
+              ) : !auctionEnded ? (
+                <div className="flex items-center text-sm font-medium">
+                  <Clock className="h-4 w-4 mr-1" />
+                  <span>Ends in: {remainingTime}</span>
                 </div>
               ) : (
                 <Badge variant="destructive" className="px-3 py-1 text-sm">
@@ -187,34 +229,37 @@ export default function Forward() {
                 </Badge>
               )}
             </div>
+
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">Current bid</p>
               <p className="text-3xl font-bold">${auctionItem.currentPrice.toLocaleString()}</p>
 
-              {!auctionEnded && (
+              {auctionItem.isFutureAuction ? (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>This auction hasn't started yet. Check back when it begins.</AlertDescription>
+                </Alert>
+              ) : !auctionEnded ? (
                 <div className="space-y-2">
                   <Input type="number" value={bidAmount} onChange={(e) => setBidAmount(e.target.value)} placeholder="Enter your bid" />
                   <Button onClick={placeBid} className="w-full">
                     Place Bid
                   </Button>
                 </div>
+              ) : isWinner ? (
+                <Button className="w-full" onClick={handleProceedToPayment}>
+                  Proceed to Payment
+                </Button>
+              ) : order ? (
+                <Button className="w-full" onClick={handleProceedToPayment}>
+                  Proceed to Payment
+                </Button>
+              ) : (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>This auction has ended.</AlertDescription>
+                </Alert>
               )}
-
-              {auctionEnded &&
-                (isWinner ? (
-                  <Button className="w-full" onClick={handleProceedToPayment}>
-                    Proceed to Payment
-                  </Button>
-                ) : order ? (
-                  <Button className="w-full" onClick={handleProceedToPayment}>
-                    Proceed to Payment
-                  </Button>
-                ) : (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>This auction has ended.</AlertDescription>
-                  </Alert>
-                ))}
             </div>
           </CardContent>
         </Card>

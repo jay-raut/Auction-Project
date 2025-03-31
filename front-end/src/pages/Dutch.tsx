@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Clock } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuction } from "@/Context/AuctionContext";
 
@@ -21,6 +21,8 @@ type AuctionItem = {
   shippingPrice: number;
   ownerId: string;
   isActive: boolean;
+  startTime: string;
+  isFutureAuction: boolean;
 };
 
 export default function Dutch() {
@@ -32,6 +34,7 @@ export default function Dutch() {
   const [auctionEnded, setAuctionEnded] = useState(false);
   const [isWinner, setIsWinner] = useState(false);
   const [priceReduction, setPriceReduction] = useState(0);
+  const [timeUntilStart, setTimeUntilStart] = useState<string>("");
 
   useEffect(() => {
     async function getAuctionById(id: string) {
@@ -44,6 +47,10 @@ export default function Dutch() {
         const data = await response.json();
         const auction = data.auction;
 
+        const startTime = new Date(auction.start_time);
+        const now = new Date();
+        const isFutureAuction = !auction.is_active && startTime > now;
+
         setAuctionItem({
           id: auction.auction_id,
           name: auction.item_name,
@@ -52,8 +59,34 @@ export default function Dutch() {
           shippingPrice: auction.shipping_cost,
           currentPrice: auction?.current_bid || auction.starting_amount,
           ownerId: auction.auction_owner,
-          isActive: auction.is_active, // Include is_active field
+          isActive: auction.is_active,
+          startTime: auction.start_time,
+          isFutureAuction,
         });
+
+        if (isFutureAuction) {
+          const updateCountdown = () => {
+            const now = new Date();
+            const diff = startTime.getTime() - now.getTime();
+
+            if (diff <= 0) {
+              clearInterval(interval);
+              setAuctionItem((prev) => (prev ? { ...prev, isActive: true, isFutureAuction: false } : null));
+              return;
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            setTimeUntilStart(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+          };
+
+          updateCountdown();
+          const interval = setInterval(updateCountdown, 1000);
+          return () => clearInterval(interval);
+        }
       } catch (error) {
         toast.error("Failed to fetch auction");
       }
@@ -172,17 +205,29 @@ export default function Dutch() {
                   Dutch Auction
                 </Badge>
               </div>
-              {auctionEnded && (
+
+              {auctionItem.isFutureAuction ? (
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  <span>Auction starts in: {timeUntilStart}</span>
+                </div>
+              ) : auctionEnded ? (
                 <Badge variant="destructive" className="px-3 py-1 text-sm">
                   Auction Ended
                 </Badge>
-              )}
+              ) : null}
+
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">Current price</p>
                 <p className="text-3xl font-bold">${auctionItem.currentPrice.toLocaleString()}</p>
                 <Separator />
 
-                {!auctionItem.isActive ? (
+                {auctionItem.isFutureAuction ? (
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>This auction hasn't started yet. Check back when it begins.</AlertDescription>
+                  </Alert>
+                ) : !auctionItem.isActive ? (
                   <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>This auction has ended.</AlertDescription>
