@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,15 +10,42 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Clock, Search } from "lucide-react";
 import { toast } from "sonner";
 import { useAuction } from "@/Context/AuctionContext";
+import { get } from "@/utils/apiClient";
 
-async function get_all_auctions() {
-  const response = await fetch("https://localhost:3000/api/auction/all", {
-    method: "GET",
-  });
-  if (response.ok) {
-    const response_json = await response.json();
-    const formattedData = response_json.auctions.map((auction) => {
-      let auction_data = {
+// Define interfaces for type safety
+interface AuctionResponse {
+  message: string;
+  auctions: AuctionData[];
+}
+
+interface AuctionData {
+  auction_id: string;
+  item_name: string;
+  item_description: string;
+  current_bid?: number;
+  starting_amount: number;
+  auction_type: string;
+  is_active: boolean;
+  start_time: string;
+  end_time: string;
+}
+
+interface FormattedAuction {
+  id: string;
+  name: string;
+  description: string;
+  currentPrice: number;
+  type: string;
+  is_active: boolean;
+  start_time: string;
+  remainingTime?: string;
+}
+
+async function get_all_auctions(): Promise<FormattedAuction[]> {
+  try {
+    const response_json = await get<AuctionResponse>('/auction/all');
+    const formattedData = response_json.auctions.map((auction: AuctionData) => {
+      let auction_data: FormattedAuction = {
         id: auction.auction_id,
         name: auction.item_name,
         description: auction.item_description,
@@ -50,34 +77,57 @@ async function get_all_auctions() {
       return auction_data;
     });
     return formattedData;
+  } catch (error) {
+    console.error("Error fetching auctions:", error);
+    toast("Failed to connect to auction server");
+    return [];
   }
-  toast("Could not auctions");
 }
-
-const auctionItems = await get_all_auctions();
 
 export default function Catalogue() {
   const { isAuthenticated, socket } = useAuction();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("active");
   const [forceUpdate, setForceUpdate] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [auctions, setAuctions] = useState<FormattedAuction[]>([]);
+
+  useEffect(() => {
+    const loadAuctions = async () => {
+      setIsLoading(true);
+      try {
+        const items = await get_all_auctions();
+        setAuctions(items);
+      } catch (error) {
+        console.error("Failed to load auctions:", error);
+        toast("Could not load auctions");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadAuctions();
+  }, []);
 
   const rerender = () => {
     setForceUpdate(forceUpdate + 1);
   };
 
-  socket?.emit("subscribe", "all");
-  socket?.on("auction.bid", (bid) => {
-    const update_auction = auctionItems.find((auction) => auction.id === bid.auction_id);
+  if (socket) {
+    socket.emit("subscribe", "all");
+    socket.on("auction.bid", (bid: { auction_id: string, bid: number }) => {
+      const update_auction = auctions.find((auction: FormattedAuction) => auction.id === bid.auction_id);
 
-    if (update_auction) {
-      update_auction.currentPrice = bid.bid;
-      rerender();
-    }
-  });
-  const filteredItems = auctionItems.filter((item) => {
+      if (update_auction) {
+        update_auction.currentPrice = bid.bid;
+        rerender();
+      }
+    });
+  }
+
+  const filteredItems = auctions.filter((item: FormattedAuction) => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
-    console.log(item);
+    
     if (activeTab === "all") {
       return matchesSearch;
     } else if (activeTab === "active") {
@@ -117,10 +167,18 @@ export default function Catalogue() {
             </Tabs>
           </div>
 
-          {filteredItems.length === 0 ? (
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <p className="text-lg font-medium">Loading auctions...</p>
+            </div>
+          ) : filteredItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <p className="text-lg font-medium">No items found</p>
-              <p className="text-muted-foreground">Try adjusting your search or filters</p>
+              <p className="text-muted-foreground">
+                {activeTab === "all" 
+                  ? "There are no auctions currently available. Check back later or create your own auction!" 
+                  : "Try adjusting your search or filters"}
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
