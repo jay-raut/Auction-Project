@@ -71,7 +71,7 @@ export default function Forward() {
 
             if (diff <= 0) {
               clearInterval(interval);
-
+              setTimeUntilStart("Auction is starting...");
               return;
             }
 
