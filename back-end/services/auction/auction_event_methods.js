@@ -4,14 +4,17 @@ const stop_auction_types = {
   forward_auction: stop_forward_auction,
   dutch_auction: stop_dutch_auction,
 };
-async function start_auction(auction, pool_connection, redis_client) {
+async function start_auction(auction, pool_connection, redis_client, producer) {
   const client = await pool_connection.connect();
   try {
     await client.query("BEGIN");
     const update_active_query = "UPDATE auctions SET is_active = true WHERE auction_id = $1";
     await client.query(update_active_query, [auction.auction_id]);
-
     await redis_methods.set_is_active(auction.auction_id, redis_client);
+    await producer.send({
+      topic: "notification.auction.event",
+      messages: [{ value: JSON.stringify({ event_type: "auction.start", auction: auction }) }],
+    });
     await client.query("COMMIT");
   } catch (error) {
     await client.query("ROLLBACK");

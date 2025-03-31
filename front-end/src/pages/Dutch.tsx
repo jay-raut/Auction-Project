@@ -71,7 +71,7 @@ export default function Dutch() {
 
             if (diff <= 0) {
               clearInterval(interval);
-              setAuctionItem((prev) => (prev ? { ...prev, isActive: true, isFutureAuction: false } : null));
+              setTimeUntilStart("Auction is starting...");
               return;
             }
 
@@ -121,15 +121,21 @@ export default function Dutch() {
     const handleAuctionEnded = () => {
       setAuctionEnded(true);
     };
+    const handleAuctionStarted = () => {
+      console.log("Auction started");
+      setAuctionItem((prev) => (prev ? { ...prev, isActive: true, isFutureAuction: false } : null));
+    };
 
     socket.on("auction.bid", handleBidUpdate);
     socket.on("order.ready", await_order);
     socket.on("auction.ended", handleAuctionEnded);
+    socket.on("auction.start", handleAuctionStarted);
 
     return () => {
       socket.off("auction.bid", handleBidUpdate);
       socket.off("order.ready", await_order);
       socket.off("auction.ended", handleAuctionEnded);
+      socket.off("auction.start", handleAuctionStarted);
     };
   }, [socket]);
 

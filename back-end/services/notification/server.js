@@ -1,5 +1,5 @@
 require("dotenv").config(); //environment variables
-const cookie  = require("cookie");
+const cookie = require("cookie");
 const { Server } = require("socket.io");
 const { Kafka } = require("kafkajs");
 const server_port = process.env.server_port;
@@ -25,7 +25,7 @@ io.use(async (socket, next) => {
     return next(new Error("No cookies found"));
   }
 
-  const get_token = cookie.parse(get_cookie).token
+  const get_token = cookie.parse(get_cookie).token;
   console.log(get_token);
 
   if (!get_token) {
@@ -83,6 +83,13 @@ async function start_consumers() {
         console.log(connected_users);
         console.log(get_user_socket_id);
         io.to(get_user_socket_id).emit("order.ready", data.order);
+      }
+      if (data.event_type == "auction.start") {
+        const ended_message = {
+          auction: data.auction,
+        };
+        io.to(data.auction.auction_id).emit("auction.start", ended_message);
+        io.to("all").emit("auction.start", ended_message);
       }
     },
   });

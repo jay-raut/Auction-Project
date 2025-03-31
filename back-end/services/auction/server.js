@@ -228,7 +228,7 @@ const run = async () => {
       try {
         if (data.event_type == "auction.start") {
           console.log(`${JSON.parse(data.auction).auction_id} needs to start`);
-          await auction_event_functions.start_auction(JSON.parse(data.auction), pool, redis_client);
+          await auction_event_functions.start_auction(JSON.parse(data.auction), pool, redis_client, producer);
         }
         if (data.event_type == "auction.stop") {
           //auction ended and a winner is needed

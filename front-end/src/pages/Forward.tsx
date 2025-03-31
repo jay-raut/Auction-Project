@@ -71,8 +71,7 @@ export default function Forward() {
 
             if (diff <= 0) {
               clearInterval(interval);
-              setAuctionEnded(false);
-              setAuctionItem((prev) => (prev ? { ...prev, isActive: true, isFutureAuction: false } : null));
+
               return;
             }
 
@@ -134,14 +133,22 @@ export default function Forward() {
       setOrder(created_order);
     };
 
+    const handleAuctionStarted = () => {
+      console.log("Auction started");
+      setAuctionEnded(false);
+      setAuctionItem((prev) => (prev ? { ...prev, isActive: true, isFutureAuction: false } : null));
+    };
+
     socket.on("auction.bid", handleBidUpdate);
     socket.on("auction.ended", handleAuctionEnded);
     socket.on("order.ready", await_order);
+    socket.on("auction.start", handleAuctionStarted);
 
     return () => {
       socket.off("auction.bid", handleBidUpdate);
       socket.off("auction.ended", handleAuctionEnded);
       socket.off("order.ready", await_order);
+      socket.off("auction.start", handleAuctionStarted);
     };
   }, [socket]);
 

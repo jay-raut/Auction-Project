@@ -67,6 +67,8 @@ export default function CreateAuction() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.message);
       toast.success("Auction created successfully!");
+      console.log(data);
+      navigate(`/${data.auction_info.auction_type}/${data.auction_info.auction_id}`);
     } catch (error) {
       toast.error(error.message);
     }
