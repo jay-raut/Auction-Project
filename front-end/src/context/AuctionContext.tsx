@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Socket } from "socket.io-client";
 import { initializeSocket } from "./SocketContext";
+import { get } from "../utils/apiClient";
 
 type AuctionContextType = {
   socket: Socket | null;
@@ -19,18 +20,21 @@ export const AuctionProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   useEffect(() => {
     async function check_token() {
-      const userLoggedIn = await fetch("https://localhost:3000/api/authentication/profile", {
-        method: "GET",
-        credentials: "include",
-      });
-      if (userLoggedIn.ok) {
+      try {
+        const response = await get('/authentication/profile', { withCredentials: true });
         setIsAuthenticated(true);
-        const user = await userLoggedIn.json();
-        setUser(user.user);
-      } else {
+        setUser(response.user);
+      } catch (error: any) {
+        // Handle expected "No token provided" error silently
+        if (error?.message?.includes('No token provided')) {
+          console.log('User not authenticated yet');
+        } else {
+          console.error("Authentication check failed:", error);
+        }
         setIsAuthenticated(false);
+      } finally {
+        setIsAuthLoading(false);
       }
-      setIsAuthLoading(false);
     }
     check_token();
   }, []);
