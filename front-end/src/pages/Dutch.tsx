@@ -33,7 +33,7 @@ export default function Dutch() {
   const [auctionItem, setAuctionItem] = useState<AuctionItem | null>(null);
   const [auctionEnded, setAuctionEnded] = useState(false);
   const [isWinner, setIsWinner] = useState(false);
-  const [priceReduction, setPriceReduction] = useState(0);
+  const [priceReduction, setPriceReduction] = useState("");
   const [timeUntilStart, setTimeUntilStart] = useState<string>("");
 
   useEffect(() => {
@@ -174,7 +174,7 @@ export default function Dutch() {
       const response = await fetch(`https://localhost:3000/api/auction/bid/${id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bid: priceReduction }),
+        body: JSON.stringify({ bid: Number(priceReduction) }),
         credentials: "include",
       });
       const data = await response.json();
@@ -260,7 +260,7 @@ export default function Dutch() {
                     </Button>
                     {user?.user_id === auctionItem.ownerId && (
                       <div className="flex space-x-2">
-                        <Input type="number" value={priceReduction} onChange={(e) => setPriceReduction(Number(e.target.value))} placeholder="Enter reduction" />
+                        <Input type="number" value={priceReduction} onChange={(e) => setPriceReduction((e.target.value))} placeholder="Enter reduction" />
                         <Button onClick={handleReducePrice}>Reduce Price</Button>
                       </div>
                     )}
