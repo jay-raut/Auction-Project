@@ -1,5 +1,6 @@
 import io, { Socket } from "socket.io-client";
-const socketEndpoint = "https://localhost:3000";
+// Use relative URL to take advantage of the Vite proxy
+const socketEndpoint = window.location.protocol + "//" + window.location.host;
 let socket: Socket | null = null;
 
 export function initializeSocket(): Socket {
@@ -11,7 +12,6 @@ export function initializeSocket(): Socket {
       withCredentials: true,
     });
     
-
     socket.on("connect", () => {
       console.log("Socket connected");
     });
