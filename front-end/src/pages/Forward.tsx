@@ -43,7 +43,7 @@ export default function Forward() {
 
         const auctionEndTime = new Date(auction.end_time);
         setEndTime(auctionEndTime);
-
+        setAuctionEnded(!auction.is_active);
         setAuctionItem({
           id: auction.auction_id,
           name: auction.item_name,

@@ -154,7 +154,7 @@ export default function Catalogue() {
                   </CardContent>
                   <CardFooter className="p-4 pt-0">
                     <Link to={item.type === "forward_auction" ? `/forward_auction/${item.id}` : `/dutch_auction/${item.id}`} className="w-full">
-                      <Button className="w-full">{item.type === "forward_auction" ? "Place Bid" : "View Auction"}</Button>
+                      <Button className="w-full">{item.type === "forward_auction" ? (item.is_active ? "Place Bid" : "View Auction") : "View Auction"}</Button>
                     </Link>
                   </CardFooter>
                 </Card>

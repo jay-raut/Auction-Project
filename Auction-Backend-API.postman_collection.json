@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "f0726a48-4f6f-48ca-86da-a1e2e54f6038",
+		"_postman_id": "68e7dfc2-5f1c-4049-b2b9-41ebb0b68fde",
 		"name": "Auction-Backend-API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "28964913"
@@ -21,8 +21,8 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/api/authentication/login",
-					"protocol": "http",
+					"raw": "https://localhost:3000/api/authentication/login",
+					"protocol": "https",
 					"host": [
 						"localhost"
 					],
@@ -51,8 +51,8 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/api/authentication/login",
-					"protocol": "http",
+					"raw": "https://localhost:3000/api/authentication/login",
+					"protocol": "https",
 					"host": [
 						"localhost"
 					],
@@ -84,8 +84,8 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/api/authentication/register",
-					"protocol": "http",
+					"raw": "https://localhost:3000/api/authentication/register",
+					"protocol": "https",
 					"host": [
 						"localhost"
 					],
@@ -117,8 +117,8 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/api/authentication/register",
-					"protocol": "http",
+					"raw": "https://localhost:3000/api/authentication/register",
+					"protocol": "https",
 					"host": [
 						"localhost"
 					],
@@ -142,7 +142,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"item_name\":\"some item name\",\n    \"item_description\": \"some description\",\n    \"auction_type\": \"forward_auction\",\n    \"start_time\": \"now\",\n    \"starting_amount\": 10.00,\n    \"end_time\": 1781258623\n}",
+					"raw": "{\n    \"item_name\":\"some item name\",\n    \"item_description\": \"some description\",\n    \"auction_type\": \"forward_auction\",\n    \"start_time\": \"now\",\n    \"starting_amount\": 10.00,\n    \"end_time\": 1842841380,\n    \"shipping_cost\": 10,\n    \"expedited_shipping_cost\": 10\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -150,7 +150,8 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:3000/api/auction/create",
+					"raw": "https://localhost:3000/api/auction/create",
+					"protocol": "https",
 					"host": [
 						"localhost"
 					],
@@ -174,7 +175,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"item_name\":\"some item name\",\n    \"item_description\": \"some description\",\n    \"auction_type\": \"forward_auction\",\n    \"start_time\": 1581258623,\n    \"starting_amount\": 10.00,\n    \"end_time\": 1781258623\n}",
+					"raw": "{\n    \"item_name\": \"some item name\",\n    \"item_description\": \"some description\",\n    \"auction_type\": \"forward_auction\",\n    \"start_time\": 1581258623,\n    \"starting_amount\": 10.00,\n    \"end_time\": 1781258623,\n    \"shipping_cost\": 30,\n    \"expedited_shipping_cost\": 75\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -182,7 +183,8 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:3000/api/auction/create",
+					"raw": "https://localhost:3000/api/auction/create",
+					"protocol": "https",
 					"host": [
 						"localhost"
 					],
@@ -206,7 +208,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"item_name\":\"some item name\",\n    \"item_description\": \"some description\",\n    \"auction_type\": \"forward_auction\",\n    \"start_time\": \"now\",\n    \"starting_amount\": 10.00,\n    \"end_time\": 1651258623\n}",
+					"raw": "{\n    \"item_name\": \"some item name\",\n    \"item_description\": \"some description\",\n    \"auction_type\": \"forward_auction\",\n    \"start_time\": \"now\",\n    \"starting_amount\": 10.00,\n    \"end_time\": 1651258623,\n    \"shipping_cost\": 30,\n    \"expedited_shipping_cost\": 75\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -214,7 +216,8 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:3000/api/auction/create",
+					"raw": "https://localhost:3000/api/auction/create",
+					"protocol": "https",
 					"host": [
 						"localhost"
 					],
@@ -238,7 +241,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"item_name\":\"some item name\",\n    \"item_description\": \"some description\",\n    \"auction_type\": \"forward_auction\",\n    \"start_time\": 1881258623,\n    \"starting_amount\": 10.00,\n    \"end_time\": 1781258623\n}",
+					"raw": "{\n    \"item_name\": \"some item name\",\n    \"item_description\": \"some description\",\n    \"auction_type\": \"forward_auction\",\n    \"start_time\": 1881258623,\n    \"starting_amount\": 10.00,\n    \"end_time\": 1781258623,\n    \"shipping_cost\": 30,\n    \"expedited_shipping_cost\": 75\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -246,7 +249,8 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:3000/api/auction/create",
+					"raw": "https://localhost:3000/api/auction/create",
+					"protocol": "https",
 					"host": [
 						"localhost"
 					],
@@ -270,7 +274,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"item_name\":\"some item name\",\n    \"item_description\": \"some description\",\n    \"auction_type\": \"dutch_auction\",\n    \"start_time\": \"now\",\n    \"starting_amount\": 13\n}",
+					"raw": "{\n    \"item_name\":\"some item name\",\n    \"item_description\": \"some description\",\n    \"auction_type\": \"dutch_auction\",\n    \"start_time\": \"now\",\n    \"starting_amount\": 50,\n    \"shipping_cost\": 30,\n    \"expedited_shipping_cost\": 75\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -278,7 +282,8 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:3000/api/auction/create",
+					"raw": "https://localhost:3000/api/auction/create",
+					"protocol": "https",
 					"host": [
 						"localhost"
 					],
@@ -302,7 +307,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"item_name\":\"some item name\",\n    \"item_description\": \"some description\",\n    \"auction_type\": \"dutch_auction\",\n    \"start_time\": 1701258623,\n    \"starting_amount\": 13\n}",
+					"raw": "{\n    \"item_name\": \"some item name\",\n    \"item_description\": \"some description\",\n    \"auction_type\": \"dutch_auction\",\n    \"start_time\": 1701258623,\n    \"starting_amount\": 13,\n    \"shipping_cost\": 30,\n    \"expedited_shipping_cost\": 75\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -310,7 +315,8 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:3000/api/auction/create",
+					"raw": "https://localhost:3000/api/auction/create",
+					"protocol": "https",
 					"host": [
 						"localhost"
 					],
@@ -334,7 +340,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"item_name\":\"some item name\",\n    \"item_description\": \"some description\",\n    \"auction_type\": \"some_invalid_type\",\n    \"start_time\": \"now\",\n    \"starting_amount\": 13\n}",
+					"raw": "{\n    \"item_name\": \"some item name\",\n    \"item_description\": \"some description\",\n    \"auction_type\": \"some_invalid_type\",\n    \"start_time\": \"now\",\n    \"starting_amount\": 13,\n    \"shipping_cost\": 30,\n    \"expedited_shipping_cost\": 75\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -342,7 +348,8 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:3000/api/auction/create",
+					"raw": "https://localhost:3000/api/auction/create",
+					"protocol": "https",
 					"host": [
 						"localhost"
 					],
@@ -374,8 +381,8 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/api/authentication/create-payment-method",
-					"protocol": "http",
+					"raw": "https://localhost:3000/api/authentication/create-payment-method",
+					"protocol": "https",
 					"host": [
 						"localhost"
 					],
@@ -407,7 +414,8 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:3000/api/authentication/create-address",
+					"raw": "https://localhost:3000/api/authentication/create-address",
+					"protocol": "https",
 					"host": [
 						"localhost"
 					],
@@ -430,7 +438,8 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "localhost:3000/api/authentication/address",
+					"raw": "https://localhost:3000/api/authentication/address",
+					"protocol": "https",
 					"host": [
 						"localhost"
 					],
@@ -453,7 +462,8 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "localhost:3000/api/authentication/payment",
+					"raw": "https://localhost:3000/api/authentication/payment",
+					"protocol": "https",
 					"host": [
 						"localhost"
 					],
@@ -476,7 +486,8 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "localhost:3000/api/auction/search/some",
+					"raw": "https://localhost:3000/api/auction/search/some",
+					"protocol": "https",
 					"host": [
 						"localhost"
 					],
@@ -509,7 +520,8 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:3000/api/auction/bid/73f42d24-2039-4a47-a1fb-064fe4faeb61",
+					"raw": "https://localhost:3000/api/auction/bid/73f42d24-2039-4a47-a1fb-064fe4faeb61",
+					"protocol": "https",
 					"host": [
 						"localhost"
 					],
@@ -542,7 +554,8 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:3000/api/auction/bid/312ea822-cdef-4059-bae0-834b5d9da35f",
+					"raw": "https://localhost:3000/api/auction/bid/312ea822-cdef-4059-bae0-834b5d9da35f",
+					"protocol": "https",
 					"host": [
 						"localhost"
 					],
@@ -566,7 +579,8 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "localhost:3000/api/auction/all-active",
+					"raw": "https://localhost:3000/api/auction/all-active",
+					"protocol": "https",
 					"host": [
 						"localhost"
 					],
@@ -589,7 +603,8 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "localhost:3000/api/auction/all",
+					"raw": "https://localhost:3000/api/auction/all",
+					"protocol": "https",
 					"host": [
 						"localhost"
 					],
@@ -612,7 +627,8 @@
 				"method": "POST",
 				"header": [],
 				"url": {
-					"raw": "localhost:3000/api/auction/buy-now/73f42d24-2039-4a47-a1fb-064fe4faeb61",
+					"raw": "https://localhost:3000/api/auction/buy-now/73f42d24-2039-4a47-a1fb-064fe4faeb61",
+					"protocol": "https",
 					"host": [
 						"localhost"
 					],
@@ -636,7 +652,8 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "localhost:3000/api/payment/all",
+					"raw": "https://localhost:3000/api/payment/all",
+					"protocol": "https",
 					"host": [
 						"localhost"
 					],
@@ -668,7 +685,8 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:3000/api/payment/submit-payment/4865f71e-805a-4933-add8-c68856293c34",
+					"raw": "https://localhost:3000/api/payment/submit-payment/4865f71e-805a-4933-add8-c68856293c34",
+					"protocol": "https",
 					"host": [
 						"localhost"
 					],
