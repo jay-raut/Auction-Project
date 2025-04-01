@@ -11,6 +11,7 @@ import Payment from "./pages/Payment";
 import Receipt from "./pages/Receipt";
 import Orders from "./pages/Orders";
 import CreateAuction from "./pages/CreateAuction";
+import Account from "./pages/Account";
 import { Toaster } from "sonner";
 import { AuctionProvider, useAuction } from "./Context/AuctionContext";
 
@@ -35,6 +36,7 @@ const AuthenticatedApp = () => {
           <Route path="/login" element={isAuthenticated ? <Catalogue /> : <Login />} />
           <Route path="/orders" element={isAuthenticated ? <Orders /> : <Login />} />
           <Route path="/create" element={isAuthenticated ? <CreateAuction /> : <Login />}></Route>
+          <Route path="/account" element={isAuthenticated ? <Account /> : <Login />} />
           <Route path="/signup" element={isAuthenticated ? <Catalogue /> : <Signup />} />
           <Route path="/landing" element={<Landing />} />
           <Route path="/catalogue" element={isAuthenticated ? <Catalogue /> : <Landing />} />

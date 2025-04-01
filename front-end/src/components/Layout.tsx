@@ -1,6 +1,6 @@
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Gavel, LogOut, ShoppingBag, User, ShoppingCart, CirclePlus } from "lucide-react";
+import { Gavel, LogOut, ShoppingBag, User, ShoppingCart, CirclePlus, Settings } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { useAuction } from "@/Context/AuctionContext";
@@ -34,6 +34,10 @@ export default function Layout() {
 
   const handleCreate = async () => {
     navigate("/create", { replace: true });
+  };
+
+  const handleAccount = () => {
+    navigate("/account", { replace: true });
   };
 
   return (
@@ -72,6 +76,10 @@ export default function Layout() {
                     <p className="text-xs text-muted-foreground">{user.username}</p>
                     <p className="text-xs text-muted-foreground">ID:{user.user_id}</p>
                   </div>
+                  <DropdownMenuItem onClick={handleAccount}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Account Settings</span>
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>
