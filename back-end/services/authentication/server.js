@@ -90,9 +90,6 @@ app.post("/logout", (req, res) => {
   res.status(200).send({ message: "Logged out successfully" });
 });
 
-
-
-
 app.get("/profile", async (req, res) => {
   const { token } = req.cookies;
 
@@ -175,6 +172,22 @@ app.post("/change-password", async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).json("Could not change password");
+  }
+});
+
+app.post("/reset-password", async (req, res) => {
+  const { username, new_password } = req.body;
+  if (!username || !new_password) {
+    //checking if request has data
+    return res.status(400).json({ messsage: "Missing new or old password" });
+  }
+
+  try {
+    const password_change_result = await auth_functions.reset_password(username, new_password, pool);
+    return res.status(password_change_result.status).json({ message: password_change_result.message });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json("Could not reset password");
   }
 });
 

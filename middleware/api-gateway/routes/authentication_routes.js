@@ -82,4 +82,12 @@ router.post(
     changeOrigin: true,
   })
 );
+
+router.post(
+  "/reset-password",
+  createProxyMiddleware({
+    target: `http://${process.env.auth_service_address}`,
+    changeOrigin: true,
+  })
+);
 module.exports = router;

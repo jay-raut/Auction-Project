@@ -175,6 +175,32 @@ async function change_password(old_password, new_password, user, pool_connection
   }
 }
 
+async function reset_password(user, new_password, pool_connection) {
+  const client = await pool_connection.connect();
+  try {
+    const get_user = await client.query("SELECT * FROM users WHERE username = $1", [user]);
+    if (get_user.rows.length != 1) {
+      //check if user exists
+      return { status: 400, message: "Username doesn't exist" };
+    }
+    await client.query("BEGIN");
+
+    const query = "UPDATE users SET password_hash = $1 WHERE username = $2 RETURNING username";
+    const hashed_password = await bcryptjs.hash(new_password, 10);
+    const result = await client.query(query, [hashed_password, user]);
+    await client.query("COMMIT");
+    if (result.rows.length === 0) {
+      throw new Error("Result length 0");
+    }
+    return { status: 200, message: "Password was reset"};
+  } catch (error) {
+    await client.query("ROLLBACK"); //rollback the commits on failure
+    throw new Error(error);
+  } finally {
+    client.release();
+  }
+}
+
 async function get_payment_methods(user, pool_connection) {
   const client = await pool_connection.connect();
   try {
@@ -217,4 +243,4 @@ function sign_token(token) {
   return jwt.sign(token, process.env.jwt_secret, { expiresIn: "5hr" });
 }
 
-module.exports = { create_user, login, verify, sign_token, change_password, change_username, create_address, create_payment_method, get_payment_methods, get_addresses };
+module.exports = { create_user, login, verify, sign_token, change_password, change_username, create_address, create_payment_method, get_payment_methods, get_addresses, reset_password };

@@ -12,15 +12,14 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
-
-
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is required"),
 });
 
 const resetSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
+  username: z.string().min(1, "Username is required"),
+  new_password: z.string().min(1, "Password must be at least 1 character"),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -42,7 +41,8 @@ export default function Login() {
   const resetForm = useForm<ResetFormValues>({
     resolver: zodResolver(resetSchema),
     defaultValues: {
-      email: "",
+      username: "",
+      new_password: "",
     },
   });
 
@@ -57,7 +57,7 @@ export default function Login() {
       if (login_status.ok) {
         localStorage.setItem("isAuthenticated", "true");
         toast.success("Successfully logged in");
-        
+
         navigate("/");
         window.location.reload();
       } else {
@@ -70,7 +70,6 @@ export default function Login() {
   };
 
   async function loginUser(data: { username: any; password: any }) {
-    //stores the jwt token in browser's cookies
     const { username, password } = data;
     const response = await fetch("http://localhost:3000/api/authentication/login", {
       method: "POST",
@@ -83,12 +82,24 @@ export default function Login() {
 
   const onResetSubmit = async (data: ResetFormValues) => {
     try {
-      // In a real app, this would call your password reset API
-      console.log("Reset password for:", data.email);
-      setResetSent(true);
-      toast.success("Password reset instructions sent to your email");
+      const response = await fetch("http://localhost:3000/api/authentication/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: data.username,
+          new_password: data.new_password,
+        }),
+      });
+
+      if (response.ok) {
+        setResetSent(true);
+        toast.success("Password reset successfully");
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.message || "Failed to reset password");
+      }
     } catch (err) {
-      toast.error("Failed to send reset instructions");
+      toast.error("Failed to reset password");
     }
   };
 
@@ -139,12 +150,12 @@ export default function Login() {
                         <DialogContent>
                           <DialogHeader>
                             <DialogTitle>Reset your password</DialogTitle>
-                            <DialogDescription>Enter your email address and we'll send you instructions to reset your password.</DialogDescription>
+                            <DialogDescription>Enter your username and new password to reset your credentials.</DialogDescription>
                           </DialogHeader>
                           {resetSent ? (
                             <div className="space-y-4 py-4">
                               <Alert className="bg-primary/10 border-primary/20">
-                                <AlertDescription>If an account exists with that email, you'll receive password reset instructions shortly.</AlertDescription>
+                                <AlertDescription>If an account exists with that username, the password will be updated.</AlertDescription>
                               </Alert>
                               <Button className="w-full" onClick={() => setResetSent(false)}>
                                 Back to login
@@ -155,12 +166,25 @@ export default function Login() {
                               <form onSubmit={resetForm.handleSubmit(onResetSubmit)} className="space-y-4">
                                 <FormField
                                   control={resetForm.control}
-                                  name="email"
+                                  name="username"
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel>Email</FormLabel>
+                                      <FormLabel>Username</FormLabel>
                                       <FormControl>
-                                        <Input {...field} type="email" placeholder="Enter your email" />
+                                        <Input {...field} type="text" placeholder="Enter your username" />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={resetForm.control}
+                                  name="new_password"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>New Password</FormLabel>
+                                      <FormControl>
+                                        <Input {...field} type="password" placeholder="Enter new password" />
                                       </FormControl>
                                       <FormMessage />
                                     </FormItem>
@@ -168,7 +192,7 @@ export default function Login() {
                                 />
                                 <DialogFooter>
                                   <Button type="submit" className="w-full">
-                                    Send reset instructions
+                                    Reset password
                                   </Button>
                                 </DialogFooter>
                               </form>
