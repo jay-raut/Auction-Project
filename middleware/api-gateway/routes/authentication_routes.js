@@ -98,4 +98,20 @@ router.post(
     changeOrigin: true,
   })
 );
+
+router.delete(
+  "/payment",
+  createProxyMiddleware({
+    target: `http://${process.env.auth_service_address}`,
+    changeOrigin: true,
+  })
+);
+
+router.delete(
+  "/address",
+  createProxyMiddleware({
+    target: `http://${process.env.auth_service_address}`,
+    changeOrigin: true,
+  })
+);
 module.exports = router;

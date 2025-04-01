@@ -351,6 +351,54 @@ app.post("/verify", async (req, res) => {
   }
 });
 
+app.delete("/payment", async (req, res) => {
+  const { token } = req.cookies;
+  const { payment_method_id } = req.body;
+  if (!token) {
+    return res.status(400).json({ messsage: "Missing session token" });
+  }
+
+  if (!payment_method_id) {
+    return res.status(400).json({ message: "Missing payment id" });
+  }
+
+  try {
+    const decrypted_token = await auth_functions.verify(token);
+    if (decrypted_token.status != 200) {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+    const delete_payment_method = await auth_functions.delete_payment(decrypted_token.user, payment_method_id, pool);
+    return res.status(delete_payment_method.status).json({ message: delete_payment_method.message });
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ message: "Could not delete payment method" });
+  }
+});
+
+app.delete("/address", async (req, res) => {
+  const { token } = req.cookies;
+  const { address_id } = req.body;
+  if (!token) {
+    return res.status(400).json({ messsage: "Missing session token" });
+  }
+
+  if (!address_id) {
+    return res.status(400).json({ message: "Missing address id" });
+  }
+
+  try {
+    const decrypted_token = await auth_functions.verify(token);
+    if (decrypted_token.status != 200) {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+    const delete_address_result = await auth_functions.delete_address(decrypted_token.user, address_id, pool);
+    return res.status(delete_address_result.status).json({ message: delete_address_result.message });
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ message: "Could not delete address" });
+  }
+});
+
 const server_port = process.env.server_port;
 app.listen(server_port, console.log(`Authserver started on port ${server_port}`));
 

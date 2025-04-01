@@ -267,6 +267,62 @@ async function get_addresses(user, pool_connection) {
   }
 }
 
+async function delete_payment(user, payment_method_id, pool_connection) {
+  const client = await pool_connection.connect();
+  try {
+    const verifyPayment = await client.query("SELECT * FROM payment_methods WHERE payment_method_id = $1 AND user_id = $2", [payment_method_id, user.user_id]);
+
+    if (verifyPayment.rows.length === 0) {
+      return { status: 404, message: "Payment method not found or doesn't belong to user" };
+    }
+
+    await client.query("BEGIN");
+
+    const deleteResult = await client.query("DELETE FROM payment_methods WHERE payment_method_id = $1 AND user_id = $2 RETURNING *", [payment_method_id, user.user_id]);
+
+    if (deleteResult.rowCount === 0) {
+      throw new Error("Failed to delete payment method");
+    }
+
+    await client.query("COMMIT");
+    return { status: 200, message: "Payment method deleted successfully" };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    console.error("Error deleting payment method:", error);
+    return { status: 400, message: "Could not delete payment method" };
+  } finally {
+    client.release();
+  }
+}
+
+async function delete_address(user, address_id, pool_connection) {
+  const client = await pool_connection.connect();
+  try {
+    const verify_address = await client.query("SELECT * FROM addresses WHERE address_id = $1 AND user_id = $2", [address_id, user.user_id]);
+
+    if (verify_address.rows.length === 0) {
+      return { status: 404, message: "address not found or doesn't belong to user" };
+    }
+
+    await client.query("BEGIN");
+
+    const deleteResult = await client.query("DELETE FROM addresses WHERE address_id = $1 AND user_id = $2 RETURNING *", [address_id, user.user_id]);
+
+    if (deleteResult.rowCount === 0) {
+      throw new Error("Failed to delete address");
+    }
+
+    await client.query("COMMIT");
+    return { status: 200, message: "address deleted successfully" };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    console.error("Error deleting address:", error);
+    return { status: 400, message: "Could not delete address" };
+  } finally {
+    client.release();
+  }
+}
+
 async function verify(token) {
   //verifies a request using the token. If valid returns token content
   try {
@@ -296,4 +352,6 @@ module.exports = {
   get_addresses,
   reset_password,
   change_profile_name,
+  delete_payment,
+  delete_address,
 };
