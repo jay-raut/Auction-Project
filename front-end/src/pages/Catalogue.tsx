@@ -77,7 +77,6 @@ export default function Catalogue() {
   });
   const filteredItems = auctionItems.filter((item) => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
-    console.log(item);
     if (activeTab === "all") {
       return matchesSearch;
     } else if (activeTab === "active") {

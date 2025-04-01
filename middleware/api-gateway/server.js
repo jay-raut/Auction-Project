@@ -3,8 +3,6 @@ const server_port = process.env.server_port;
 
 const express = require("express"); //libraries
 const cors = require("cors");
-const https = require("https");
-const fs = require("fs");
 const auction_route = require("./routes/auction_routes");
 const notification_route = require("./routes/notification_routes");
 const payment_route = require("./routes/payment_routes");
