@@ -90,4 +90,12 @@ router.post(
     changeOrigin: true,
   })
 );
+
+router.post(
+  "/change-profile-name",
+  createProxyMiddleware({
+    target: `http://${process.env.auth_service_address}`,
+    changeOrigin: true,
+  })
+);
 module.exports = router;

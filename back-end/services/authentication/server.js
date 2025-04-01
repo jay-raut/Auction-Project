@@ -142,6 +142,44 @@ app.post("/change-username", async (req, res) => {
   }
 });
 
+app.post("/change-profile-name", async (req, res) => {
+  const { first_name, last_name } = req.body;
+  const { token } = req.cookies;
+  if (!token) {
+    return res.status(400).json({ messsage: "Missing session token" });
+  }
+
+  if (!first_name || !last_name) {
+    return res.status(400).json({ messsage: "Missing first or last name" });
+  }
+
+  try {
+    const decrypted_token = await auth_functions.verify(token);
+    if (decrypted_token.status != 200) {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+
+    const new_profile_name = { first_name: first_name, last_name: last_name };
+    const profile_name_change = await auth_functions.change_profile_name(new_profile_name, decrypted_token.user, pool);
+
+    if (profile_name_change.status == 200) {
+      //changed success
+      res.cookie("token", profile_name_change.token, {
+        //issue new token in cookie
+        httpOnly: true,
+        sameSite: "strict",
+        maxAge: 5 * 60 * 60 * 1000,
+      });
+      return res.status(profile_name_change.status).json({ message: profile_name_change.message });
+    }
+
+    return res.status(profile_name_change.status).json({ message: profile_name_change.message });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ message: "Could not change username" });
+  }
+});
+
 app.post("/change-password", async (req, res) => {
   const { old_password, new_password } = req.body;
   const { token } = req.cookies;

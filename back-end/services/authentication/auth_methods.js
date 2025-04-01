@@ -135,6 +135,46 @@ async function change_username(new_username, user, pool_connection) {
   }
 }
 
+async function change_profile_name(new_profile_name, user, pool_connection) {
+  const client = await pool_connection.connect();
+  try {
+    const get_user = await client.query("SELECT * FROM users WHERE username = $1", [user.username]);
+    if (get_user.rows.length !== 1) {
+      return { status: 400, message: "Username doesn't exist" };
+    }
+
+    await client.query("BEGIN");
+    const query = "UPDATE users SET first_name = $1, last_name = $2 WHERE username = $3 RETURNING *";
+    const result = await client.query(query, [new_profile_name.first_name, new_profile_name.last_name, user.username]);
+
+    if (result.rows.length === 0) {
+      throw new Error("Profile update failed - no rows returned");
+    }
+
+    const updatedUser = result.rows[0];
+    const token = {
+      username: updatedUser.username,
+      user_id: updatedUser.user_id,
+      first_name: updatedUser.first_name,
+      last_name: updatedUser.last_name,
+    };
+
+    const new_token = sign_token(token);
+    await client.query("COMMIT");
+    return {
+      status: 200,
+      message: "Changed profile name",
+      token: new_token,
+    };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    console.error("Error changing profile name:", error);
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 async function change_password(old_password, new_password, user, pool_connection) {
   const client = await pool_connection.connect();
   try {
@@ -192,7 +232,7 @@ async function reset_password(user, new_password, pool_connection) {
     if (result.rows.length === 0) {
       throw new Error("Result length 0");
     }
-    return { status: 200, message: "Password was reset"};
+    return { status: 200, message: "Password was reset" };
   } catch (error) {
     await client.query("ROLLBACK"); //rollback the commits on failure
     throw new Error(error);
@@ -243,4 +283,17 @@ function sign_token(token) {
   return jwt.sign(token, process.env.jwt_secret, { expiresIn: "5hr" });
 }
 
-module.exports = { create_user, login, verify, sign_token, change_password, change_username, create_address, create_payment_method, get_payment_methods, get_addresses, reset_password };
+module.exports = {
+  create_user,
+  login,
+  verify,
+  sign_token,
+  change_password,
+  change_username,
+  create_address,
+  create_payment_method,
+  get_payment_methods,
+  get_addresses,
+  reset_password,
+  change_profile_name,
+};
