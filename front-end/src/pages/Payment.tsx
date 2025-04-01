@@ -63,7 +63,7 @@ export default function Payment() {
 
   const expeditedShipping = searchParams.get("expedited") === "true";
   const totalShippingCost = expeditedShipping ? Number(auctionItem?.shipping_cost) + Number(auctionItem?.expedited_shipping_cost) : Number(auctionItem?.shipping_cost);
-  const totalPrice = Number(auctionItem?.starting_amount || 0) + Number(totalShippingCost);
+  const totalPrice = Number(order?.final_price || 0) + Number(totalShippingCost);
 
   const paymentForm = useForm<PaymentFormValues>({
     resolver: zodResolver(paymentSchema),
@@ -594,16 +594,19 @@ export default function Payment() {
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Item price:</span>
-                  <span>${auctionItem?.starting_amount.toLocaleString()}</span>
+                  <span>${order?.final_price.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Standard Shipping:</span>
                   <span>${auctionItem?.shipping_cost.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span>Expedited Shipping:</span>
-                  <span>${auctionItem?.expedited_shipping_cost.toLocaleString()}</span>
-                </div>
+                {searchParams.get("expedited") === "true" && auctionItem?.expedited_shipping_cost !== undefined && (
+                  <div className="flex justify-between text-sm">
+                    <span>Expedited Shipping:</span>
+                    <span>${auctionItem.expedited_shipping_cost.toLocaleString()}</span>
+                  </div>
+                )}
+
                 <Separator />
                 <div className="flex justify-between text-sm font-medium">
                   <span>Total:</span>
