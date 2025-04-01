@@ -3,6 +3,7 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import fs from "fs";
 import { defineConfig } from "vite";
+import https from "https";
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -18,6 +19,9 @@ export default defineConfig({
         target: 'https://localhost:3000',
         changeOrigin: true,
         secure: false,
+        agent: new https.Agent({
+          rejectUnauthorized: false
+        }),
         configure: (proxy, options) => {
           proxy.on('error', (err, req, res) => {
             console.log('proxy error', err);
