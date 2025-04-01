@@ -1,8 +1,8 @@
 {
 	"info": {
-		"_postman_id": "68e7dfc2-5f1c-4049-b2b9-41ebb0b68fde",
+		"_postman_id": "bf91c584-1edc-4413-9802-df44b0209a12",
 		"name": "Auction-Backend-API",
-		"schema": "http://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "28964913"
 	},
 	"item": [
@@ -101,6 +101,39 @@
 		},
 		{
 			"name": "Register Request (Tries to make a new account of the same username. Assumes someuser was already created)",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"someuser\",\n    \"password\": \"somepassword\",\n    \"first_name\": \"some_first_name\",\n    \"last_name\": \"some_last_name\",\n    \"street_address\": \"young street\",\n    \"street_number\": \"123\",\n    \"zip_code\": \"10001\",\n    \"city\": \"New York\",\n    \"country\": \"USA\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/authentication/register",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"authentication",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Reset Password",
 			"request": {
 				"auth": {
 					"type": "noauth"
@@ -472,6 +505,72 @@
 						"api",
 						"authentication",
 						"payment"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete user's payment info",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"payment_method_id\": \"some_uuid\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/authentication/payment",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"authentication",
+						"payment"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete user's address info",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"address_id\": \"some_uuid\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/authentication/address",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"authentication",
+						"address"
 					]
 				}
 			},
