@@ -1,5 +1,5 @@
 import io, { Socket } from "socket.io-client";
-const socketEndpoint = "https://localhost:3000";
+const socketEndpoint = "http://localhost:3000";
 let socket: Socket | null = null;
 
 export function initializeSocket(): Socket {

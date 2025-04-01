@@ -12,7 +12,7 @@ export default function Layout() {
   const handleLogout = async () => {
     localStorage.removeItem("isAuthenticated");
     try {
-      const response = await fetch("https://localhost:3000/api/authentication/logout", {
+      const response = await fetch("http://localhost:3000/api/authentication/logout", {
         method: "POST",
         credentials: "include",
       });

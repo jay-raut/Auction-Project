@@ -39,7 +39,7 @@ export default function Dutch() {
   useEffect(() => {
     async function getAuctionById(id: string) {
       try {
-        const response = await fetch(`https://localhost:3000/api/auction/${id}`);
+        const response = await fetch(`http://localhost:3000/api/auction/${id}`);
         if (!response.ok) {
           throw new Error("Could not fetch auction data");
         }
@@ -141,7 +141,7 @@ export default function Dutch() {
 
   const handleBuyNow = async () => {
     try {
-      const response = await fetch(`https://localhost:3000/api/auction/buy-now/${id}`, {
+      const response = await fetch(`http://localhost:3000/api/auction/buy-now/${id}`, {
         method: "POST",
         credentials: "include",
       });
@@ -171,7 +171,7 @@ export default function Dutch() {
       return;
     }
     try {
-      const response = await fetch(`https://localhost:3000/api/auction/bid/${id}`, {
+      const response = await fetch(`http://localhost:3000/api/auction/bid/${id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bid: Number(priceReduction) }),

@@ -72,7 +72,7 @@ export default function Login() {
   async function loginUser(data: { username: any; password: any }) {
     //stores the jwt token in browser's cookies
     const { username, password } = data;
-    const response = await fetch("https://localhost:3000/api/authentication/login", {
+    const response = await fetch("http://localhost:3000/api/authentication/login", {
       method: "POST",
       body: JSON.stringify({ username, password }),
       headers: { "Content-Type": "application/json" },

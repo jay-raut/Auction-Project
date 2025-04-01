@@ -38,14 +38,14 @@ export default function CreateAuction() {
     expedited_shipping_cost: "",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    let auctionData: any = {
+    let auctionData = {
       ...formData,
       start_time: startNow ? "now" : Math.floor(startDate.getTime() / 1000),
       auction_type: auctionType,
@@ -56,7 +56,7 @@ export default function CreateAuction() {
     }
 
     try {
-      const response = await fetch("/api/auction/create", {
+      const response = await fetch("https://localhost:3000/api/auction/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -69,7 +69,7 @@ export default function CreateAuction() {
       toast.success("Auction created successfully!");
       console.log(data);
       navigate(`/${data.auction_info.auction_type}/${data.auction_info.auction_id}`);
-    } catch (error: any) {
+    } catch (error) {
       toast.error(error.message);
     }
   };
@@ -95,7 +95,7 @@ export default function CreateAuction() {
             </div>
             <div>
               <Label>Item Description</Label>
-              <Input name="item_description" value={formData.item_description} onChange={handleChange} required />
+              <Input name="item_description" value={formData.item_descxription} onChange={handleChange} required />
             </div>
 
             <div>
@@ -129,7 +129,7 @@ export default function CreateAuction() {
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
-                    <Calendar mode="single" selected={startDate} onSelect={(date) => date && setStartDate(date)} initialFocus />
+                    <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus />
                     <div className="p-3 border-t">
                       <input
                         type="time"
@@ -160,7 +160,7 @@ export default function CreateAuction() {
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
-                    <Calendar mode="single" selected={endDate} onSelect={(date) => date && setEndDate(date)} initialFocus fromDate={startDate} />
+                    <Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus fromDate={startDate} />
                     <div className="p-3 border-t">
                       <input
                         type="time"
