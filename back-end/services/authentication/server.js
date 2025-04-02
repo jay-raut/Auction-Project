@@ -381,7 +381,6 @@ app.delete("/address", async (req, res) => {
   if (!token) {
     return res.status(400).json({ messsage: "Missing session token" });
   }
-
   if (!address_id) {
     return res.status(400).json({ message: "Missing address id" });
   }

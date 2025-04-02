@@ -7,6 +7,7 @@ type AuctionContextType = {
   isAuthenticated: boolean | false;
   isAuthLoading: boolean;
   user: null;
+  forceUpdate: () => void;  
 };
 
 const AuctionContext = createContext<AuctionContextType | undefined>(undefined);
@@ -17,8 +18,16 @@ export const AuctionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [user, setUser] = useState(null);
 
+  const [key, setKey] = useState(0);
+
+  const forceUpdate = () => {
+    setKey((prev) => prev + 1);
+    console.log("force update");
+  };
+
   useEffect(() => {
     async function check_token() {
+      console.log("check_token")
       const userLoggedIn = await fetch("http://localhost:3000/api/authentication/profile", {
         method: "GET",
         credentials: "include",
@@ -33,7 +42,7 @@ export const AuctionProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setIsAuthLoading(false);
     }
     check_token();
-  }, []);
+  }, [key]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -45,7 +54,7 @@ export const AuctionProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
   }, [isAuthenticated]);
 
-  return <AuctionContext.Provider value={{ socket, isAuthenticated, isAuthLoading, user }}>{children}</AuctionContext.Provider>;
+  return <AuctionContext.Provider value={{ socket, isAuthenticated, isAuthLoading, user, forceUpdate }}>{children}</AuctionContext.Provider>;
 };
 
 export const useAuction = () => {
