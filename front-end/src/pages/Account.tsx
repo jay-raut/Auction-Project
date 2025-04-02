@@ -18,6 +18,7 @@ interface UserData {
 
 interface Address {
   id: string;
+  address_id: string;
   street_address: string;
   street_number: number;
   city: string;
@@ -28,11 +29,12 @@ interface Address {
 
 interface PaymentMethod {
   id: string;
+  payment_method_id: string;
   card_number: string;
   name_on_card: string;
   expiration_date: {
-    year: string;
-    month: string;
+    year: string | number;
+    month: string | number;
   };
 }
 
@@ -45,17 +47,23 @@ export default function Account() {
     first_name: "",
     last_name: "",
   });
+  const [passwordData, setPasswordData] = useState({
+    old_password: "",
+    new_password: "",
+    confirm_password: "",
+  });
   const [isLoading, setIsLoading] = useState({
     username: false,
     first_name: false,
     last_name: false,
+    password: false,
   });
   const [activeTab, setActiveTab] = useState("account");
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [newAddress, setNewAddress] = useState({
     street_address: "",
-    street_number: "",
+    street_number: "" as unknown as number,
     city: "",
     zip_code: "",
     country: "",
@@ -190,6 +198,14 @@ export default function Account() {
     });
   };
 
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setPasswordData({
+      ...passwordData,
+      [name]: value,
+    });
+  };
+
   const updateField = async (field: "username" | "first_name" | "last_name") => {
     if (!userData?.user_id) return;
 
@@ -233,6 +249,47 @@ export default function Account() {
     }
   };
 
+  const updatePassword = async () => {
+    if (passwordData.new_password !== passwordData.confirm_password) {
+      toast.error("New passwords do not match");
+      return;
+    }
+
+    setIsLoading({ ...isLoading, password: true });
+
+    try {
+      const response = await fetch("http://localhost:3000/api/authentication/change-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          old_password: passwordData.old_password,
+          new_password: passwordData.new_password,
+        }),
+      });
+
+      if (response.ok) {
+        toast.success("Password updated successfully");
+        setPasswordData({
+          old_password: "",
+          new_password: "",
+          confirm_password: "",
+        });
+        forceUpdate();
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.message || "Failed to update password");
+      }
+    } catch (error) {
+      console.error("Error updating password:", error);
+      toast.error("An error occurred while updating your password");
+    } finally {
+      setIsLoading({ ...isLoading, password: false });
+    }
+  };
+
   const addAddress = async () => {
     try {
       const response = await fetch("http://localhost:3000/api/authentication/create-address", {
@@ -249,7 +306,7 @@ export default function Account() {
         fetchAddresses();
         setNewAddress({
           street_address: "",
-          street_number: "",
+          street_number: "" as unknown as number,
           city: "",
           zip_code: "",
           country: "",
@@ -399,6 +456,55 @@ export default function Account() {
                       <Input id="last_name" name="last_name" value={formData.last_name} onChange={handleInputChange} className="flex-grow" />
                       <Button onClick={() => updateField("last_name")} disabled={isLoading.last_name || formData.last_name === userData.last_name} size="sm">
                         {isLoading.last_name ? "Saving..." : "Save"}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-4 mt-4">
+                    <h3 className="text-lg font-medium mb-4">Change Password</h3>
+                    <div className="space-y-3">
+                      <div>
+                        <Label htmlFor="old_password">Current Password</Label>
+                        <Input 
+                          id="old_password" 
+                          name="old_password" 
+                          type="password" 
+                          value={passwordData.old_password} 
+                          onChange={handlePasswordChange} 
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="new_password">New Password</Label>
+                        <Input 
+                          id="new_password" 
+                          name="new_password" 
+                          type="password" 
+                          value={passwordData.new_password} 
+                          onChange={handlePasswordChange} 
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="confirm_password">Confirm New Password</Label>
+                        <Input 
+                          id="confirm_password" 
+                          name="confirm_password" 
+                          type="password" 
+                          value={passwordData.confirm_password} 
+                          onChange={handlePasswordChange} 
+                        />
+                      </div>
+                      <Button
+                        onClick={updatePassword}
+                        disabled={
+                          isLoading.password || 
+                          !passwordData.old_password || 
+                          !passwordData.new_password || 
+                          !passwordData.confirm_password ||
+                          passwordData.new_password !== passwordData.confirm_password
+                        }
+                        className="w-full"
+                      >
+                        {isLoading.password ? "Updating..." : "Update Password"}
                       </Button>
                     </div>
                   </div>
